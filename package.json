@@ -1,0 +1,33 @@
+{
+  "name": "final-project",
+  "private": true,
+  "workspaces": [
+    "apps/web",
+    "apps/server"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev -w apps/web",
+    "dev:server": "npm run dev -w apps/server",
+    "build:web": "npm run build -w apps/web",
+    "build:server": "npm run build -w apps/server",
+    "lint:web": "npm run lint -w apps/web",
+    "lint:server": "npm run lint -w apps/server",
+    "test:web": "npm run test -w apps/web",
+    "test:server": "npm run test -w apps/server",
+    "test": "npm run test:web && npm run test:server",
+    "test:coverage": "npm run test:coverage -w apps/web && npm run test:coverage -w apps/server",
+    "seed:local": "npm run db:seed:small -w apps/server",
+    "seed:local:medium": "npm run db:seed:medium -w apps/server",
+    "seed:local:large": "npm run db:seed:large -w apps/server",
+    "seed:legacy": "npm run db:seed:legacy -w apps/server",
+    "sonar:up": "docker compose -f sonarqube-compose.yml up -d",
+    "sonar:down": "docker compose -f sonarqube-compose.yml down",
+    "sonar:scan": "sonar-scanner"
+  },
+  "dependencies": {
+    "@fission-ai/openspec": "^1.0.2"
+  },
+  "devDependencies": {
+    "sonar-scanner": "^3.1.0"
+  }
+}

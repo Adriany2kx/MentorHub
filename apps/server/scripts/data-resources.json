@@ -1,0 +1,74 @@
+﻿[
+    {
+        "title":  "Mastering React Hooks",
+        "description":  "A comprehensive guide to using useEffect, useMemo, and custom hooks effectively in your projects.",
+        "fileType":  "DOCUMENT",
+        "topic":  "React"
+    },
+    {
+        "title":  "Component Design Patterns",
+        "description":  "Learn about higher-order components, render props, and compound components for better code reuse.",
+        "fileType":  "VIDEO",
+        "topic":  "React"
+    },
+    {
+        "title":  "Building Scalable Systems",
+        "description":  "Deep dive into horizontal scaling, load balancing, and caching strategies for high-traffic apps.",
+        "fileType":  "DOCUMENT",
+        "topic":  "System Design"
+    },
+    {
+        "title":  "Microservices Architecture",
+        "description":  "An overview of service discovery, API gateways, and communication patterns between services.",
+        "fileType":  "VIDEO",
+        "topic":  "System Design"
+    },
+    {
+        "title":  "Typography in Web UI",
+        "description":  "Essential principles of web typography, including hierarchy, spacing, and font selection for readability.",
+        "fileType":  "IMAGE",
+        "topic":  "UX Design"
+    },
+    {
+        "title":  "Accessibility Best Practices",
+        "description":  "Practical tips for making your web applications accessible to everyone, following WCAG standards.",
+        "fileType":  "DOCUMENT",
+        "topic":  "UX Design"
+    },
+    {
+        "title":  "Async Programming in Python",
+        "description":  "Mastering asyncio, await, and concurrent execution to build high-performance Python applications.",
+        "fileType":  "VIDEO",
+        "topic":  "Python"
+    },
+    {
+        "title":  "Data Analysis with Pandas",
+        "description":  "Learn how to clean, transform, and analyze large datasets using the powerful Pandas library.",
+        "fileType":  "DOCUMENT",
+        "topic":  "Python"
+    },
+    {
+        "title":  "Intro to Docker Containers",
+        "description":  "A beginner-friendly guide to containerization, images, and running your first Docker container.",
+        "fileType":  "VIDEO",
+        "topic":  "DevOps"
+    },
+    {
+        "title":  "Terraform Best Practices",
+        "description":  "Infrastructure as Code patterns for managing cloud resources reliably and maintainably.",
+        "fileType":  "DOCUMENT",
+        "topic":  "DevOps"
+    },
+    {
+        "title":  "Product Discovery Framework",
+        "description":  "Techniques for validating ideas and ensuring you are building the right features for users.",
+        "fileType":  "DOCUMENT",
+        "topic":  "Product Management"
+    },
+    {
+        "title":  "Defining Success Metrics",
+        "description":  "How to identify and track the right KPIs to measure the success of your product features.",
+        "fileType":  "IMAGE",
+        "topic":  "Product Management"
+    }
+]

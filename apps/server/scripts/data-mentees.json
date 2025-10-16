@@ -1,0 +1,251 @@
+﻿[
+    {
+        "firstName":  "Alex",
+        "lastName":  "Chen",
+        "email":  "mentee1@mentorship.test",
+        "currentRole":  "Junior Developer",
+        "targetRole":  "Senior Engineer",
+        "goals":  "Looking to deepen my knowledge of scalable backend systems and improve my system design skills over the next year.",
+        "interests":  [
+                          "Web Development",
+                          "AI/ML"
+                      ]
+    },
+    {
+        "firstName":  "Sarah",
+        "lastName":  "Johnson",
+        "email":  "mentee2@mentorship.test",
+        "currentRole":  "Mid-Level Engineer",
+        "targetRole":  "Tech Lead",
+        "goals":  "I want to transition into a leadership role where I can mentor junior developers and lead technical initiatives.",
+        "interests":  [
+                          "Leadership",
+                          "Open Source",
+                          "Web Development"
+                      ]
+    },
+    {
+        "firstName":  "David",
+        "lastName":  "Kim",
+        "email":  "mentee3@mentorship.test",
+        "currentRole":  "Frontend Engineer",
+        "targetRole":  "Engineering Manager",
+        "goals":  "Aiming to build cross-functional management skills to lead diverse engineering teams efficiently and empathetically.",
+        "interests":  [
+                          "Leadership",
+                          "Design",
+                          "Startups"
+                      ]
+    },
+    {
+        "firstName":  "Emily",
+        "lastName":  "Davis",
+        "email":  "mentee4@mentorship.test",
+        "currentRole":  "Backend Engineer",
+        "targetRole":  "Architect",
+        "goals":  "Seeking guidance on designing high-availability systems and transitioning from implementation to architectural planning.",
+        "interests":  [
+                          "DevOps",
+                          "Web Development"
+                      ]
+    },
+    {
+        "firstName":  "Michael",
+        "lastName":  "Martinez",
+        "email":  "mentee5@mentorship.test",
+        "currentRole":  "DevOps Engineer",
+        "targetRole":  "Tech Lead",
+        "goals":  "Looking to improve my communication skills and learn how to better align infrastructure projects with business goals.",
+        "interests":  [
+                          "DevOps",
+                          "Leadership",
+                          "Startups"
+                      ]
+    },
+    {
+        "firstName":  "Jessica",
+        "lastName":  "Taylor",
+        "email":  "mentee6@mentorship.test",
+        "currentRole":  "UX Designer",
+        "targetRole":  "Product Manager",
+        "goals":  "Hoping to bridge the gap between user experience and business strategy to become a highly effective product manager.",
+        "interests":  [
+                          "Design",
+                          "Startups"
+                      ]
+    },
+    {
+        "firstName":  "Ryan",
+        "lastName":  "Anderson",
+        "email":  "mentee7@mentorship.test",
+        "currentRole":  "Career Changer",
+        "targetRole":  "Senior Engineer",
+        "goals":  "Eager to rapidly level up my programming skills and understand industry best practices for writing maintainable code.",
+        "interests":  [
+                          "Web Development",
+                          "Mobile Development"
+                      ]
+    },
+    {
+        "firstName":  "Amanda",
+        "lastName":  "Thomas",
+        "email":  "mentee8@mentorship.test",
+        "currentRole":  "Junior Developer",
+        "targetRole":  "Tech Lead",
+        "goals":  "I want to master frontend frameworks and eventually guide technical decisions for client-facing web applications.",
+        "interests":  [
+                          "Web Development",
+                          "Design",
+                          "Leadership"
+                      ]
+    },
+    {
+        "firstName":  "James",
+        "lastName":  "Jackson",
+        "email":  "mentee9@mentorship.test",
+        "currentRole":  "Mid-Level Engineer",
+        "targetRole":  "Architect",
+        "goals":  "Looking for mentorship on building distributed systems and understanding the trade-offs in cloud architectures.",
+        "interests":  [
+                          "DevOps",
+                          "Open Source",
+                          "AI/ML"
+                      ]
+    },
+    {
+        "firstName":  "Laura",
+        "lastName":  "White",
+        "email":  "mentee10@mentorship.test",
+        "currentRole":  "Frontend Engineer",
+        "targetRole":  "Product Manager",
+        "goals":  "Aiming to leverage my technical background to make data-driven product decisions and lead successful product launches.",
+        "interests":  [
+                          "Startups",
+                          "Design"
+                      ]
+    },
+    {
+        "firstName":  "Daniel",
+        "lastName":  "Harris",
+        "email":  "mentee11@mentorship.test",
+        "currentRole":  "Backend Engineer",
+        "targetRole":  "Engineering Manager",
+        "goals":  "Seeking advice on how to successfully transition from an individual contributor to managing a team of developers.",
+        "interests":  [
+                          "Leadership",
+                          "Startups",
+                          "Web Development"
+                      ]
+    },
+    {
+        "firstName":  "Melissa",
+        "lastName":  "Martin",
+        "email":  "mentee12@mentorship.test",
+        "currentRole":  "DevOps Engineer",
+        "targetRole":  "Architect",
+        "goals":  "Want to expand my knowledge beyond infrastructure to include application architecture and system design at scale.",
+        "interests":  [
+                          "DevOps",
+                          "AI/ML"
+                      ]
+    },
+    {
+        "firstName":  "Kevin",
+        "lastName":  "Thompson",
+        "email":  "mentee13@mentorship.test",
+        "currentRole":  "Career Changer",
+        "targetRole":  "Tech Lead",
+        "goals":  "Working towards building a strong foundation in mobile development to eventually lead a team of mobile engineers.",
+        "interests":  [
+                          "Mobile Development",
+                          "Leadership"
+                      ]
+    },
+    {
+        "firstName":  "Rachel",
+        "lastName":  "Garcia",
+        "email":  "mentee14@mentorship.test",
+        "currentRole":  "Senior Developer",
+        "targetRole":  "Engineering Manager",
+        "goals":  "Looking to refine my people management skills and learn how to foster a culture of continuous learning and growth.",
+        "interests":  [
+                          "Leadership",
+                          "Open Source"
+                      ]
+    },
+    {
+        "firstName":  "Brian",
+        "lastName":  "Martinez",
+        "email":  "mentee15@mentorship.test",
+        "currentRole":  "Junior Developer",
+        "targetRole":  "Product Manager",
+        "goals":  "Fascinated by the intersection of tech and business, aiming to understand the product lifecycle from start to finish.",
+        "interests":  [
+                          "Startups",
+                          "Web Development",
+                          "AI/ML"
+                      ]
+    },
+    {
+        "firstName":  "Stephanie",
+        "lastName":  "Robinson",
+        "email":  "mentee16@mentorship.test",
+        "currentRole":  "UX Designer",
+        "targetRole":  "Architect",
+        "goals":  "Transitioning towards front-end architecture, I want to learn how to structure scalable and accessible design systems.",
+        "interests":  [
+                          "Design",
+                          "Web Development",
+                          "Open Source"
+                      ]
+    },
+    {
+        "firstName":  "Eric",
+        "lastName":  "Clark",
+        "email":  "mentee17@mentorship.test",
+        "currentRole":  "Mid-Level Engineer",
+        "targetRole":  "Senior Engineer",
+        "goals":  "Aiming to tackle complex technical challenges in machine learning and become a subject matter expert.",
+        "interests":  [
+                          "AI/ML",
+                          "Web Development"
+                      ]
+    },
+    {
+        "firstName":  "Natalie",
+        "lastName":  "Rodriguez",
+        "email":  "mentee18@mentorship.test",
+        "currentRole":  "Frontend Engineer",
+        "targetRole":  "Tech Lead",
+        "goals":  "Looking to develop my technical leadership skills and learn how to drive engineering best practices across teams.",
+        "interests":  [
+                          "Leadership",
+                          "Design"
+                      ]
+    },
+    {
+        "firstName":  "Justin",
+        "lastName":  "Lewis",
+        "email":  "mentee19@mentorship.test",
+        "currentRole":  "Backend Engineer",
+        "targetRole":  "Product Manager",
+        "goals":  "Seeking to understand customer needs deeply and translate them into actionable technical requirements for dev teams.",
+        "interests":  [
+                          "Startups",
+                          "AI/ML"
+                      ]
+    },
+    {
+        "firstName":  "Michelle",
+        "lastName":  "Lee",
+        "email":  "mentee20@mentorship.test",
+        "currentRole":  "Senior Developer",
+        "targetRole":  "Architect",
+        "goals":  "Focusing on enterprise-level system architecture and wanting to learn how to make high-impact technical decisions.",
+        "interests":  [
+                          "DevOps",
+                          "Open Source",
+                          "Leadership"
+                      ]
+    }
+]

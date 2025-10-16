@@ -1,0 +1,210 @@
+﻿[
+    {
+        "firstName":  "Sarah",
+        "lastName":  "Chen",
+        "email":  "mentor1@mentorship.test",
+        "headline":  "Expert in React and Frontend Architecture",
+        "expertise":  [
+                          "React",
+                          "TypeScript",
+                          "UI/UX"
+                      ],
+        "hourlyRate":  120,
+        "yearsExperience":  8,
+        "bio":  "Senior Frontend Engineer with a passion for building scalable web applications and mentoring junior developers on modern React patterns."
+    },
+    {
+        "firstName":  "Marcus",
+        "lastName":  "Rodriguez",
+        "email":  "mentor2@mentorship.test",
+        "headline":  "Expert in Python and Data Science",
+        "expertise":  [
+                          "Python",
+                          "Data Science",
+                          "System Design"
+                      ],
+        "hourlyRate":  150,
+        "yearsExperience":  12,
+        "bio":  "PhD in Computer Science specializing in machine learning pipelines. I help mentees bridge the gap between research and production code."
+    },
+    {
+        "firstName":  "Elena",
+        "lastName":  "Petrova",
+        "email":  "mentor3@mentorship.test",
+        "headline":  "Expert in DevOps and Cloud Infrastructure",
+        "expertise":  [
+                          "DevOps",
+                          "Node.js",
+                          "System Design"
+                      ],
+        "hourlyRate":  140,
+        "yearsExperience":  10,
+        "bio":  "Cloud architect focused on Kubernetes and CI/CD automation. I help teams scale their infrastructure while maintaining high availability."
+    },
+    {
+        "firstName":  "David",
+        "lastName":  "Kim",
+        "email":  "mentor4@mentorship.test",
+        "headline":  "Expert in Node.js and Backend Engineering",
+        "expertise":  [
+                          "Node.js",
+                          "TypeScript",
+                          "System Design"
+                      ],
+        "hourlyRate":  110,
+        "yearsExperience":  7,
+        "bio":  "Full-stack developer with a deep love for Type-safe backends. Let\u0027s master asynchronous programming and microservices architecture together."
+    },
+    {
+        "firstName":  "Aisha",
+        "lastName":  "Johnson",
+        "email":  "mentor5@mentorship.test",
+        "headline":  "Expert in Product Management and Strategy",
+        "expertise":  [
+                          "Product Management",
+                          "UI/UX"
+                      ],
+        "hourlyRate":  180,
+        "yearsExperience":  15,
+        "bio":  "Former Big Tech PM lead. I specialize in turning complex technical requirements into user-centric products that drive business growth."
+    },
+    {
+        "firstName":  "Thomas",
+        "lastName":  "M├╝ller",
+        "email":  "mentor6@mentorship.test",
+        "headline":  "Expert in System Design and Scalability",
+        "expertise":  [
+                          "System Design",
+                          "Python",
+                          "DevOps"
+                      ],
+        "hourlyRate":  200,
+        "yearsExperience":  18,
+        "bio":  "Architected systems serving millions of users. I teach the principles of distributed systems and how to avoid common scaling pitfalls."
+    },
+    {
+        "firstName":  "Isabella",
+        "lastName":  "Silva",
+        "email":  "mentor7@mentorship.test",
+        "headline":  "Expert in UI/UX and Creative Direction",
+        "expertise":  [
+                          "UI/UX",
+                          "React"
+                      ],
+        "hourlyRate":  95,
+        "yearsExperience":  5,
+        "bio":  "Design-focused engineer who believes code should be as beautiful as the interface. I help devs master CSS and accessibility."
+    },
+    {
+        "firstName":  "James",
+        "lastName":  "Wilson",
+        "email":  "mentor8@mentorship.test",
+        "headline":  "Expert in TypeScript and Enterprise Apps",
+        "expertise":  [
+                          "TypeScript",
+                          "React",
+                          "Node.js"
+                      ],
+        "hourlyRate":  130,
+        "yearsExperience":  9,
+        "bio":  "Enterprise software specialist. I focus on maintainable codebases, testing strategies, and leveraging TypeScript to its full potential."
+    },
+    {
+        "firstName":  "Priya",
+        "lastName":  "Patel",
+        "email":  "mentor9@mentorship.test",
+        "headline":  "Expert in Data Science and Analytics",
+        "expertise":  [
+                          "Data Science",
+                          "Python"
+                      ],
+        "hourlyRate":  125,
+        "yearsExperience":  6,
+        "bio":  "Data scientist turned mentor. I help students navigate the world of statistics, data cleaning, and effective storytelling with data."
+    },
+    {
+        "firstName":  "Kevin",
+        "lastName":  "Lee",
+        "email":  "mentor10@mentorship.test",
+        "headline":  "Expert in DevOps and Site Reliability",
+        "expertise":  [
+                          "DevOps",
+                          "System Design",
+                          "Python"
+                      ],
+        "hourlyRate":  160,
+        "yearsExperience":  11,
+        "bio":  "SRE veteran. I\u0027ll teach you how to build resilient systems, handle on-call stress, and automate everything with Python and Bash."
+    },
+    {
+        "firstName":  "Sophie",
+        "lastName":  "Martin",
+        "email":  "mentor11@mentorship.test",
+        "headline":  "Expert in React and Web Performance",
+        "expertise":  [
+                          "React",
+                          "UI/UX",
+                          "TypeScript"
+                      ],
+        "hourlyRate":  115,
+        "yearsExperience":  7,
+        "bio":  "Performance nerd. I help developers optimize React apps for speed and efficiency while maintaining a great developer experience."
+    },
+    {
+        "firstName":  "Ahmed",
+        "lastName":  "Hassan",
+        "email":  "mentor12@mentorship.test",
+        "headline":  "Expert in Node.js and API Design",
+        "expertise":  [
+                          "Node.js",
+                          "System Design",
+                          "DevOps"
+                      ],
+        "hourlyRate":  135,
+        "yearsExperience":  9,
+        "bio":  "Backend specialist focused on REST and GraphQL APIs. I emphasize security, documentation, and clean API contract design."
+    },
+    {
+        "firstName":  "Chloe",
+        "lastName":  "Taylor",
+        "email":  "mentor13@mentorship.test",
+        "headline":  "Expert in Product Management and UX",
+        "expertise":  [
+                          "Product Management",
+                          "UI/UX",
+                          "Data Science"
+                      ],
+        "hourlyRate":  170,
+        "yearsExperience":  13,
+        "bio":  "Bridge the gap between design and business. I help technical leads develop product thinking and user empathy for better outcomes."
+    },
+    {
+        "firstName":  "Daniel",
+        "lastName":  "O\u0027Connor",
+        "email":  "mentor14@mentorship.test",
+        "headline":  "Expert in Python and Automation",
+        "expertise":  [
+                          "Python",
+                          "DevOps",
+                          "Node.js"
+                      ],
+        "hourlyRate":  105,
+        "yearsExperience":  5,
+        "bio":  "Automation enthusiast. I help beginners master Python for scripting and backend development through practical, real-world projects."
+    },
+    {
+        "firstName":  "Yuki",
+        "lastName":  "Tanaka",
+        "email":  "mentor15@mentorship.test",
+        "headline":  "Expert in System Design and Tech Leadership",
+        "expertise":  [
+                          "System Design",
+                          "React",
+                          "Node.js",
+                          "Product Management"
+                      ],
+        "hourlyRate":  190,
+        "yearsExperience":  20,
+        "bio":  "CTO with decades of experience. I mentor aspiring tech leads on architectural decisions and managing engineering teams effectively."
+    }
+]

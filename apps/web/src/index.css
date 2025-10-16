@@ -1,0 +1,1639 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400;1,9..144,600;1,9..144,700&display=swap");
+@import "tailwindcss";
+
+/* ============================================================
+   MentorHub — Production Design System
+   Tier 1: The3Key visual personality
+   Tier 2: LinkedIn authenticated shell
+   Tier 3: Calendly booking UX
+   Tier 4: Notion/Linear data tables & sidebar
+   ============================================================ */
+
+@theme {
+  /* — Core palette — warm editorial neutral with forest accents — */
+  --color-ink:        #1F1D1A;
+  --color-ink-2:      #4F4A44;
+  --color-ink-3:      #736C63;
+  --color-blue:       #2E6A64;
+  --color-blue-hover: #24544F;
+  --color-bg:         #F3EEE6;
+  --color-surface:    #FFFCF7;
+  --color-border:     #DDD3C6;
+  --color-muted:      #C8BCAA;
+  --color-success:    #2F7A4F;
+  --color-warning:    #A2622C;
+  --color-error:      #B74943;
+
+  /* — Strategic accent palette (OKLCH) — */
+  --color-accent:         oklch(0.66 0.14 41);
+  --color-accent-hover:   oklch(0.59 0.14 41);
+  --color-accent-soft:    oklch(0.95 0.03 55);
+  --color-teal:           oklch(0.57 0.08 187);
+  --color-teal-soft:      oklch(0.95 0.02 185);
+  --color-info-soft:      oklch(0.95 0.02 220);
+
+  /* — Semantic backgrounds/borders — */
+  --color-success-bg:     oklch(0.95 0.04 152);
+  --color-success-border: oklch(0.84 0.07 152);
+  --color-warning-bg:     oklch(0.96 0.04 74);
+  --color-warning-border: oklch(0.86 0.09 74);
+  --color-error-bg:       oklch(0.95 0.04 24);
+  --color-error-border:   oklch(0.83 0.09 24);
+  --color-info-bg:        oklch(0.95 0.03 270);
+  --color-info-border:    oklch(0.83 0.08 270);
+
+  /* — Hero/CTA + Sidebar sections (always dark) — */
+  --color-hero-bg:    #202825;
+  --color-sidebar-bg: #202825;
+
+  /* — Legacy aliases (keep pages compiling) — */
+  --color-paper:   #F3EEE6;
+  --color-paper-2: #E9E1D5;
+  --color-line:    #DDD3C6;
+  --color-link:    #2E6A64;
+  --color-warn:    #A2622C;
+
+  /* — Typography — */
+  --font-sans:    "DM Sans", system-ui, -apple-system, sans-serif;
+  --font-mono:    "DM Sans", system-ui, -apple-system, sans-serif;
+  --font-display: "Fraunces", Georgia, serif;   /* editorial serif — gorgeous italic */
+
+  /* — Layout — */
+  --sidebar-width:  220px;
+  --topnav-height:  64px;
+  --content-max:    1280px;
+
+  /* — Radius — */
+  --radius-sm:   6px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-full: 9999px;
+
+  /* — Shadows — warm-tinted per brand guidance — */
+  --shadow-card:     0 2px 8px rgba(44,20,10,0.08), 0 1px 2px rgba(44,20,10,0.05);
+  --shadow-dropdown: 0 6px 24px rgba(44,20,10,0.14);
+  --shadow-modal:    0 12px 40px rgba(44,20,10,0.20);
+  --shadow-topnav:   0 1px 0 rgba(44,20,10,0.10);
+}
+
+/* ============================================================
+   GLOBAL BASE
+   ============================================================ */
+html, body, #root {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-kerning: normal;
+  font-variant-ligatures: contextual;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M0 0H28M0 0V28' stroke='%23D0C5B7' stroke-width='1' opacity='0.45'/%3E%3C/svg%3E");
+  background-size: 28px 28px;
+  opacity: 0.2;
+  z-index: 0;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+@layer base {
+  h1, h2 {
+    font-family: var(--font-display);
+    color: var(--color-ink);
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+
+  h3, h4, h5, h6 {
+    font-family: var(--font-sans);
+    color: var(--color-ink);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+  }
+
+  a {
+    color: var(--color-blue);
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+  a:hover { color: var(--color-blue-hover); }
+.wf-hero-drift {
+  animation: wf-hero-drift 14s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes wf-hero-drift {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translate3d(20px, -15px, 0) rotate(2deg) scale(1.05);
+  }
+  100% {
+    transform: translate3d(8px, 8px, 0) rotate(-1deg) scale(0.98);
+  }
+}
+
+.wf-hero-drift-alt {
+  animation: wf-hero-drift-alt 17s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes wf-hero-drift-alt {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translate3d(-18px, 12px, 0) rotate(-2deg) scale(1.06);
+  }
+  100% {
+    transform: translate3d(-6px, -10px, 0) rotate(1.5deg) scale(0.97);
+  }
+}
+
+.wf-btn-mentor-glow {
+  box-shadow: 0 8px 20px rgba(79,70,229,0.30), 0 0 0 0 rgba(129,140,248,0.34);
+  animation: wf-mentor-glow 2.6s ease-in-out infinite;
+}
+
+@keyframes wf-mentor-glow {
+  0% {
+    box-shadow: 0 8px 20px rgba(79,70,229,0.30), 0 0 0 0 rgba(129,140,248,0.34);
+  }
+  50% {
+    box-shadow: 0 8px 20px rgba(79,70,229,0.45), 0 0 0 12px rgba(129,140,248,0);
+  }
+  100% {
+    box-shadow: 0 8px 20px rgba(79,70,229,0.30), 0 0 0 0 rgba(129,140,248,0.34);
+  }
+}
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--color-border);
+  }
+
+  ::selection {
+    background: var(--color-blue);
+    color: #fff;
+  }
+
+  * { box-sizing: border-box; }
+
+  input, textarea, select, button {
+    font-family: var(--font-sans);
+  }
+}
+
+/* ============================================================
+   COMPONENTS
+   ============================================================ */
+@layer components {
+
+  /* ---- Card ------------------------------------------------ */
+  .wf-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 2px 10px rgba(44,20,10,0.08), 0 1px 2px rgba(44,20,10,0.05);
+  }
+  .wf-card-flush {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+  .wf-card-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-ink-3);
+    background: color-mix(in oklab, var(--color-accent-soft) 36%, var(--color-surface));
+  }
+
+  .wf-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 8px;
+    background: color-mix(in oklab, var(--color-hero-bg) 45%, transparent);
+  }
+
+  .wf-modal-panel {
+    width: 100%;
+    max-height: 92vh;
+    overflow: auto;
+    padding: 16px;
+  }
+
+  @media (min-width: 640px) {
+    .wf-modal-overlay {
+      align-items: center;
+      padding: 16px;
+    }
+
+    .wf-modal-panel {
+      max-height: 88vh;
+      padding: 24px;
+    }
+  }
+
+  .wf-glass-panel {
+    background: color-mix(in oklab, var(--color-hero-bg) 78%, white 22%);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: var(--radius-lg);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 16px 30px rgba(5, 8, 28, 0.24);
+  }
+
+  .wf-trust-card {
+    background: color-mix(in oklab, var(--color-accent-soft) 42%, var(--color-surface));
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    padding: 16px 18px;
+    min-height: 76px;
+    transition: transform 220ms var(--ease-out-quart), box-shadow 220ms var(--ease-out-quart), border-color 220ms var(--ease-out-quart);
+  }
+
+  .wf-trust-card:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in oklab, var(--color-blue) 30%, var(--color-border));
+    box-shadow: var(--shadow-dropdown);
+  }
+
+  /* ---- Buttons --------------------------------------------- */
+  .wf-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 18px;
+    border-radius: 10px;
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+    white-space: nowrap;
+    border: 1px solid transparent;
+    line-height: 1.4;
+    text-decoration: none;
+  }
+  .wf-btn:disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+  .wf-btn:focus-visible {
+    outline: 2px solid var(--color-blue);
+    outline-offset: 2px;
+  }
+
+  .wf-btn-primary {
+    background: var(--color-blue);
+    color: #fff;
+    border-color: var(--color-blue);
+  }
+  .wf-btn-primary:hover:not(:disabled) {
+    background: var(--color-blue-hover);
+    border-color: var(--color-blue-hover);
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .wf-btn-secondary {
+    background: color-mix(in oklab, var(--color-accent-soft) 30%, var(--color-surface));
+    color: var(--color-ink);
+    border-color: var(--color-border);
+  }
+  .wf-btn-secondary:hover:not(:disabled) {
+    background: color-mix(in oklab, var(--color-accent-soft) 50%, var(--color-surface));
+    border-color: var(--color-accent);
+    color: var(--color-ink);
+    text-decoration: none;
+  }
+
+  .wf-btn-danger {
+    background: transparent;
+    color: var(--color-error);
+    border-color: var(--color-error);
+  }
+  .wf-btn-danger:hover:not(:disabled) {
+    background: var(--color-error);
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .wf-btn-link {
+    background: transparent;
+    color: var(--color-blue);
+    border: none;
+    padding: 0;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .wf-btn-link:hover { color: var(--color-blue-hover); text-decoration: underline; }
+
+  /* ---- Form fields ----------------------------------------- */
+  .wf-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-ink-2);
+    margin-bottom: 6px;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .wf-input,
+  .wf-textarea,
+  .wf-select {
+    display: block;
+    width: 100%;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 9px 12px;
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    color: var(--color-ink);
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    line-height: 1.5;
+  }
+  .wf-input:focus,
+  .wf-textarea:focus,
+  .wf-select:focus {
+    border-color: var(--color-blue);
+    box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
+  }
+  .wf-input::placeholder,
+  .wf-textarea::placeholder {
+    color: var(--color-ink-3);
+  }
+  .wf-textarea {
+    min-height: 96px;
+    resize: vertical;
+  }
+  .wf-input-error { border-color: var(--color-error) !important; }
+  .wf-error-text {
+    color: var(--color-error);
+    font-size: 0.875rem;
+    margin-top: 4px;
+  }
+  .wf-help-text {
+    color: var(--color-ink-3);
+    font-size: 0.875rem;
+    margin-top: 4px;
+  }
+
+  /* Boxed input variant */
+  .wf-input-box {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 9px 12px;
+    font-size: 1rem;
+    color: var(--color-ink);
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .wf-input-box:focus {
+    border-color: var(--color-blue);
+    box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
+  }
+
+  /* ---- Tags / Badges --------------------------------------- */
+  .wf-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    color: color-mix(in oklab, var(--color-blue) 72%, var(--color-ink));
+    background: color-mix(in oklab, var(--color-blue) 12%, var(--color-surface));
+    border: 1px solid color-mix(in oklab, var(--color-blue) 22%, var(--color-border));
+    border-radius: var(--radius-full);
+    transition: background 0.1s ease;
+  }
+  .wf-tag-active {
+    background: var(--color-blue);
+    color: #fff;
+    border-color: var(--color-blue);
+  }
+
+  .wf-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: var(--radius-full);
+    letter-spacing: 0;
+    text-transform: none;
+    border: none;
+  }
+  .wf-badge-success { background: var(--color-success-bg); color: var(--color-success); border: 1px solid var(--color-success-border); }
+  .wf-badge-warn    { background: var(--color-warning-bg); color: var(--color-warning); border: 1px solid var(--color-warning-border); }
+  .wf-badge-error   { background: var(--color-error-bg); color: var(--color-error); border: 1px solid var(--color-error-border); }
+  .wf-badge-info    { background: var(--color-info-bg); color: var(--color-blue); border: 1px solid var(--color-info-border); }
+  .wf-badge-neutral { background: color-mix(in oklab, var(--color-teal-soft) 45%, var(--color-surface)); color: var(--color-ink-3); border: 1px solid var(--color-border); }
+
+  /* ---- Page typography ------------------------------------- */
+  .wf-eyebrow {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-ink-3);
+  }
+  .wf-h1 {
+    font-size: clamp(2rem, 1.7rem + 1vw, 3rem);
+    font-family: var(--font-display);
+    font-weight: 500;
+    color: var(--color-ink);
+    line-height: 1.16;
+    letter-spacing: -0.016em;
+    text-wrap: balance;
+  }
+  .wf-h2 {
+    font-size: clamp(1.5rem, 1.35rem + 0.45vw, 2rem);
+    font-family: var(--font-display);
+    font-weight: 500;
+    color: var(--color-ink);
+    letter-spacing: -0.014em;
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+  .wf-h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-ink);
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+  }
+  .wf-text {
+    font-size: 1rem;
+    color: var(--color-ink);
+    line-height: 1.72;
+  }
+  .wf-text-sm {
+    font-size: 0.875rem;
+    color: var(--color-ink-2);
+    line-height: 1.55;
+  }
+  .wf-text-xs {
+    font-size: 0.75rem;
+    color: var(--color-ink-3);
+    line-height: 1.45;
+  }
+
+  .wf-copy,
+  .wf-prose {
+    max-width: 65ch;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+
+  .wf-prose p + p {
+    margin-top: 1rem;
+  }
+
+  /* ---- Tables ---------------------------------------------- */
+  .wf-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+  .wf-table thead th {
+    text-align: left;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-ink-3);
+    background: color-mix(in oklab, var(--color-accent-soft) 38%, var(--color-bg));
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    white-space: nowrap;
+  }
+  .wf-table tbody td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-ink);
+    vertical-align: middle;
+  }
+  .wf-table tbody tr:last-child td { border-bottom: none; }
+  .wf-table tbody tr:hover { background: color-mix(in oklab, var(--color-teal-soft) 55%, var(--color-bg)); }
+  .wf-table tbody tr { transition: background 0.1s ease; }
+
+  /* ---- Sidebar (dark — Notion/Linear Tier 4) --------------- */
+  .wf-sidebar {
+    width: var(--sidebar-width);
+    flex-shrink: 0;
+    background: var(--color-sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+  }
+  .wf-sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 16px;
+    font-size: 13px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.65);
+    border-radius: 0;
+    transition: background 0.1s ease, color 0.1s ease;
+    margin: 1px 8px;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+  }
+  .wf-sidebar-link:hover {
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.9);
+    text-decoration: none;
+  }
+  .wf-sidebar-link.active {
+    background: rgba(99,102,241,0.30);
+    color: #fff;
+    font-weight: 500;
+  }
+
+  /* ---- Top bar — LinkedIn Tier 2 -------------------------- */
+  .wf-topbar {
+    height: var(--topnav-height);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: var(--shadow-topnav);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .wf-topbar-logo {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-blue);
+    letter-spacing: -0.03em;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+  .wf-topbar-logo:hover { color: var(--color-blue-hover); text-decoration: none; }
+  .wf-topbar-link {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-ink-2);
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    transition: background 0.1s ease, color 0.1s ease;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .wf-topbar-link:hover { background: var(--color-bg); color: var(--color-ink); text-decoration: none; }
+  .wf-topbar-link.active { color: var(--color-blue); font-weight: 600; }
+
+  /* ---- Avatar ---------------------------------------------- */
+  .wf-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    background: var(--color-bg);
+    border: 1.5px solid var(--color-border);
+    color: var(--color-ink-2);
+    font-weight: 600;
+    overflow: hidden;
+    flex-shrink: 0;
+    font-size: 13px;
+  }
+  .wf-avatar-xs { width: 24px; height: 24px; font-size: 10px; }
+  .wf-avatar-sm { width: 32px; height: 32px; font-size: 12px; }
+  .wf-avatar-md { width: 44px; height: 44px; font-size: 16px; }
+  .wf-avatar-lg { width: 80px; height: 80px; font-size: 24px; }
+
+  /* ---- Divider --------------------------------------------- */
+  .wf-divider {
+    height: 1px;
+    background: var(--color-border);
+    border: none;
+    margin: 16px 0;
+  }
+  .wf-divider-vertical {
+    width: 1px;
+    background: var(--color-border);
+    align-self: stretch;
+  }
+
+  /* ---- Empty state ----------------------------------------- */
+  .wf-empty {
+    text-align: center;
+    padding: 56px 24px;
+    border: 1.5px dashed color-mix(in oklab, var(--color-accent) 35%, var(--color-border));
+    border-radius: var(--radius-md);
+    background: color-mix(in oklab, var(--color-accent-soft) 45%, var(--color-surface));
+  }
+  .wf-empty-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-ink);
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+  }
+  .wf-empty-text {
+    font-size: 0.875rem;
+    color: var(--color-ink-3);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+
+  /* ---- Stat card ------------------------------------------- */
+  .wf-stat {
+    background: color-mix(in oklab, var(--color-teal-soft) 28%, var(--color-surface));
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 20px 24px;
+    box-shadow: var(--shadow-card);
+    border-top: 2px solid color-mix(in oklab, var(--color-blue) 55%, var(--color-border));
+  }
+  .wf-stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--color-ink-3);
+    margin-bottom: 4px;
+  }
+  .wf-stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--color-ink);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+  .wf-stat-sub {
+    font-size: 12px;
+    color: var(--color-ink-3);
+    margin-top: 4px;
+  }
+
+  /* ---- Page container -------------------------------------- */
+  .wf-page {
+    padding: 32px 40px;
+    max-width: var(--content-max);
+    margin: 0 auto;
+  }
+  .wf-page-header {
+    margin-bottom: 28px;
+  }
+
+  /* ---- Utility — focus ring -------------------------------- */
+  .wf-focus-ring:focus-visible {
+    outline: 2px solid var(--color-blue);
+    outline-offset: 2px;
+  }
+}
+
+/* ============================================================
+   SCROLLBAR — subtle
+   ============================================================ */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: color-mix(in oklab, var(--color-accent) 55%, var(--color-ink-3)); }
+
+/* ============================================================
+   MOTION & ANIMATION
+   ============================================================ */
+
+/* Easing tokens */
+:root {
+  --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Entrance keyframe — fade + slide up */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Hero entrance — each element animates independently via animation-delay */
+.hero-enter {
+  opacity: 0;
+  animation: fadeSlideUp 700ms var(--ease-out-expo) forwards;
+}
+
+/* Scroll reveal — JS adds .is-visible via IntersectionObserver */
+.wf-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 650ms var(--ease-out-expo), transform 650ms var(--ease-out-expo);
+}
+.wf-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Card hover lift — auto-applies to all link/button cards platform-wide */
+@layer components {
+  a.wf-card, button.wf-card {
+    transition:
+      transform 220ms var(--ease-out-quart),
+      box-shadow 220ms var(--ease-out-quart),
+      background 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease;
+  }
+  a.wf-card:hover, button.wf-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-dropdown);
+    border-color: var(--color-blue);
+  }
+}
+
+/* CSS tooltip — apply data-tooltip="..." to any element */
+[data-tooltip] {
+  position: relative;
+}
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-ink);
+  color: #fff;
+  font-size: 11px;
+  line-height: 1.4;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 150ms ease;
+  z-index: 60;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+[data-tooltip]:hover::after,
+[data-tooltip]:focus-visible::after {
+  opacity: 1;
+}
+
+/* Search suggestion pill — used in landing hero */
+.wf-suggestion-pill {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.5);
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.wf-suggestion-pill:hover {
+  background: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.85);
+}
+
+.wf-live-signal {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 6px 10px;
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: var(--radius-full);
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.78);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.wf-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--color-accent-soft) 58%, white 42%);
+  box-shadow: 0 0 0 0 rgba(157, 196, 170, 0.55);
+  animation: wf-live-pulse 1.9s ease-out infinite;
+}
+
+.wf-rotating-copy {
+  animation: wf-copy-fade-in 340ms var(--ease-out-quart) forwards;
+}
+
+@keyframes wf-live-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(157, 196, 170, 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(157, 196, 170, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(157, 196, 170, 0);
+  }
+}
+
+@keyframes wf-copy-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================
+   DELIGHT — Micro-interactions & personality moments
+   ============================================================ */
+
+/* ============================================================
+   LOADING ANIMATIONS — Impeccable design system
+   Warm, trustworthy, energizing — per MentorHub brand
+   ============================================================ */
+
+/* --- Core Keyframes --- */
+@keyframes skeletonPulse {
+  0%   { opacity: 0.55; }
+  50%  { opacity: 0.85; }
+  100% { opacity: 0.55; }
+}
+
+@keyframes wf-loading-shimmer {
+  from { transform: translateX(-120%); }
+  to { transform: translateX(120%); }
+}
+
+@keyframes wf-loading-shell-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes wf-loading-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes wf-loading-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.96); }
+}
+
+@keyframes wf-loading-dots {
+  0%, 80%, 100% { opacity: 0.25; transform: scale(0.85); }
+  40% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes wf-loading-breathe {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.75; }
+}
+
+@keyframes wf-progress-indeterminate {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(0%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes wf-loading-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes wf-circular-dash {
+  0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
+  50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35; }
+  100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124; }
+}
+
+/* --- Loading Shell Container --- */
+.wf-loading-shell {
+  animation: wf-loading-shell-enter 420ms var(--ease-out-expo) both;
+}
+
+/* --- Spinner Variants --- */
+.wf-loading-spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  border: 2px solid color-mix(in oklab, var(--color-blue) 20%, var(--color-border));
+  border-top-color: var(--color-blue);
+  animation: wf-loading-spin 850ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.wf-loading-spinner-xs {
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  border: 1.5px solid color-mix(in oklab, var(--color-blue) 20%, var(--color-border));
+  border-top-color: var(--color-blue);
+  animation: wf-loading-spin 750ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.wf-loading-spinner-sm {
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  border: 2px solid color-mix(in oklab, var(--color-blue) 20%, var(--color-border));
+  border-top-color: var(--color-blue);
+  animation: wf-loading-spin 800ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.wf-loading-spinner-lg {
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  border: 3px solid color-mix(in oklab, var(--color-blue) 18%, var(--color-border));
+  border-top-color: var(--color-blue);
+  animation: wf-loading-spin 950ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.wf-loading-spinner-xl {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  border: 3.5px solid color-mix(in oklab, var(--color-blue) 15%, var(--color-border));
+  border-top-color: var(--color-blue);
+  animation: wf-loading-spin 1000ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Spinner color variants */
+.wf-loading-spinner-white,
+.wf-loading-spinner-white.wf-loading-spinner-xs,
+.wf-loading-spinner-white.wf-loading-spinner-sm,
+.wf-loading-spinner-white.wf-loading-spinner-lg,
+.wf-loading-spinner-white.wf-loading-spinner-xl {
+  border-color: rgba(255, 255, 255, 0.25);
+  border-top-color: #fff;
+}
+
+.wf-loading-spinner-accent {
+  border-color: color-mix(in oklab, var(--color-accent) 20%, var(--color-border));
+  border-top-color: var(--color-accent);
+}
+
+/* --- SVG Circular Spinner (smoother) --- */
+.wf-loading-circular {
+  animation: wf-loading-spin 1.4s linear infinite;
+}
+
+.wf-loading-circular-path {
+  stroke: var(--color-blue);
+  stroke-linecap: round;
+  animation: wf-circular-dash 1.4s ease-in-out infinite;
+}
+
+/* --- Loading Dots (three bouncing dots) --- */
+.wf-loading-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.wf-loading-dots span {
+  width: 6px;
+  height: 6px;
+  background: var(--color-blue);
+  border-radius: 9999px;
+  animation: wf-loading-dots 1.2s ease-in-out infinite;
+}
+
+.wf-loading-dots span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.wf-loading-dots span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.wf-loading-dots-sm span {
+  width: 4px;
+  height: 4px;
+}
+
+.wf-loading-dots-lg span {
+  width: 8px;
+  height: 8px;
+  gap: 6px;
+}
+
+.wf-loading-dots-white span {
+  background: #fff;
+}
+
+/* --- Loading Bounce (three elements) --- */
+.wf-loading-bounce {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 20px;
+}
+
+.wf-loading-bounce span {
+  width: 5px;
+  height: 5px;
+  background: var(--color-blue);
+  border-radius: 9999px;
+  animation: wf-loading-bounce 0.6s ease-in-out infinite;
+}
+
+.wf-loading-bounce span:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.wf-loading-bounce span:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+/* --- Skeleton Loaders --- */
+.wf-skeleton {
+  background: color-mix(in oklab, var(--color-accent-soft) 60%, var(--color-border));
+  animation: skeletonPulse 1.4s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+  border: none !important;
+}
+
+.wf-skeleton-text {
+  height: 14px;
+  border-radius: 4px;
+}
+
+.wf-skeleton-title {
+  height: 22px;
+  border-radius: 4px;
+}
+
+.wf-skeleton-avatar {
+  border-radius: 9999px;
+}
+
+.wf-skeleton-avatar-sm { width: 32px; height: 32px; }
+.wf-skeleton-avatar-md { width: 44px; height: 44px; }
+.wf-skeleton-avatar-lg { width: 80px; height: 80px; }
+
+.wf-skeleton-button {
+  height: 38px;
+  border-radius: 10px;
+}
+
+.wf-skeleton-card {
+  border-radius: var(--radius-md);
+}
+
+.wf-skeleton-image {
+  border-radius: var(--radius-md);
+  aspect-ratio: 16 / 9;
+}
+
+/* --- Shimmer Bar Effect --- */
+.wf-loading-bar {
+  position: relative;
+  overflow: hidden;
+}
+
+.wf-loading-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-120%);
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    color-mix(in oklab, var(--color-surface) 75%, transparent) 50%,
+    transparent 80%
+  );
+  animation: wf-loading-shimmer 1.6s var(--ease-out-quart) infinite;
+}
+
+/* Shimmer variant that works on any skeleton */
+.wf-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.wf-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--color-surface) 55%, transparent) 40%,
+    color-mix(in oklab, var(--color-surface) 75%, transparent) 50%,
+    color-mix(in oklab, var(--color-surface) 55%, transparent) 60%,
+    transparent
+  );
+  animation: wf-loading-shimmer 1.8s var(--ease-out-expo) infinite;
+}
+
+/* --- Progress Bar --- */
+.wf-progress {
+  height: 4px;
+  background: color-mix(in oklab, var(--color-blue) 15%, var(--color-border));
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.wf-progress-bar {
+  height: 100%;
+  background: var(--color-blue);
+  border-radius: var(--radius-full);
+  transition: width 300ms var(--ease-out-quart);
+}
+
+.wf-progress-indeterminate .wf-progress-bar {
+  width: 40%;
+  animation: wf-progress-indeterminate 1.5s var(--ease-out-quart) infinite;
+}
+
+.wf-progress-sm { height: 3px; }
+.wf-progress-lg { height: 6px; }
+
+/* Accent color progress */
+.wf-progress-accent {
+  background: color-mix(in oklab, var(--color-accent) 15%, var(--color-border));
+}
+
+.wf-progress-accent .wf-progress-bar {
+  background: var(--color-accent);
+}
+
+/* Success progress */
+.wf-progress-success {
+  background: color-mix(in oklab, var(--color-success) 15%, var(--color-border));
+}
+
+.wf-progress-success .wf-progress-bar {
+  background: var(--color-success);
+}
+
+/* --- Button Loading States --- */
+.wf-btn-loading {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+}
+
+.wf-btn-loading::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin-top: -8px;
+  margin-left: -8px;
+  border-radius: 9999px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  animation: wf-loading-spin 800ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.wf-btn-secondary.wf-btn-loading::after {
+  border-color: color-mix(in oklab, var(--color-blue) 25%, var(--color-border));
+  border-top-color: var(--color-blue);
+}
+
+/* --- Pulse Animation (for status indicators) --- */
+.wf-loading-pulse {
+  animation: wf-loading-pulse 1.5s ease-in-out infinite;
+}
+
+/* --- Breathing Animation (subtle background pulse) --- */
+.wf-loading-breathe {
+  animation: wf-loading-breathe 2s ease-in-out infinite;
+}
+
+/* --- Page Loader (full-page overlay) --- */
+.wf-page-loader {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in oklab, var(--color-bg) 92%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+  z-index: 100;
+  backdrop-filter: blur(4px);
+  animation: wf-loading-shell-enter 300ms var(--ease-out-expo) both;
+}
+
+.wf-page-loader-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-ink-2);
+  animation: wf-loading-breathe 2s ease-in-out infinite;
+}
+
+/* --- Inline Loader (within text) --- */
+.wf-loading-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-ink-2);
+  font-size: inherit;
+}
+
+.wf-loading-inline .wf-loading-spinner-xs {
+  flex-shrink: 0;
+}
+
+/* --- Card Skeleton (complete card placeholder) --- */
+.wf-skeleton-card-full {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.wf-skeleton-card-full .wf-skeleton {
+  background: color-mix(in oklab, var(--color-accent-soft) 50%, var(--color-bg));
+}
+
+/* --- Mentor Card Skeleton --- */
+.wf-skeleton-mentor-card {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.wf-skeleton-mentor-card .wf-skeleton-avatar-lg {
+  flex-shrink: 0;
+}
+
+.wf-skeleton-mentor-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* --- Table Row Skeleton --- */
+.wf-skeleton-table-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.wf-skeleton-table-row:last-child {
+  border-bottom: none;
+}
+
+/* --- Staggered Animation (for lists) --- */
+.wf-loading-stagger > * {
+  opacity: 0;
+  animation: wf-loading-shell-enter 400ms var(--ease-out-expo) forwards;
+}
+
+.wf-loading-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.wf-loading-stagger > *:nth-child(2) { animation-delay: 60ms; }
+.wf-loading-stagger > *:nth-child(3) { animation-delay: 120ms; }
+.wf-loading-stagger > *:nth-child(4) { animation-delay: 180ms; }
+.wf-loading-stagger > *:nth-child(5) { animation-delay: 240ms; }
+.wf-loading-stagger > *:nth-child(6) { animation-delay: 300ms; }
+.wf-loading-stagger > *:nth-child(7) { animation-delay: 360ms; }
+.wf-loading-stagger > *:nth-child(8) { animation-delay: 420ms; }
+
+/* Button tactile press — 1 px press-down on click */
+.wf-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* Milestone checkbox pop — fires when a milestone is checked */
+@keyframes milestonePop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.30); }
+  65%  { transform: scale(0.88); }
+  100% { transform: scale(1); }
+}
+.milestone-pop {
+  animation: milestonePop 300ms var(--ease-out-quart) forwards;
+}
+
+/* All-milestones complete — quiet celebration banner entrance */
+@keyframes completionSlide {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.wf-completion-banner {
+  animation: completionSlide 350ms var(--ease-out-quart) forwards;
+}
+
+/* Toast — slides up from bottom-right */
+@keyframes toastEnter {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+.wf-toast {
+  animation: toastEnter 280ms var(--ease-out-expo) forwards;
+}
+
+/* Booking success banner — slides down from top */
+@keyframes successBannerEnter {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.wf-success-banner {
+  animation: successBannerEnter 400ms var(--ease-out-expo) forwards;
+}
+
+/* Star rating click pop */
+@keyframes starPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.45); }
+  70%  { transform: scale(0.90); }
+  100% { transform: scale(1); }
+}
+.star-pop {
+  animation: starPop 280ms var(--ease-out-quart) forwards;
+}
+
+/* Goal completed — banner entrance */
+@keyframes goalCompletedEnter {
+  0%   { opacity: 0; transform: scale(0.92) translateY(6px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.wf-goal-completed {
+  animation: goalCompletedEnter 450ms var(--ease-out-expo) forwards;
+}
+
+/* ------------------------------------------------------------
+   OVERDRIVE: cinematic state transitions (progressive)
+   ------------------------------------------------------------ */
+::view-transition-old(mentor-results),
+::view-transition-new(mentor-results),
+::view-transition-old(bookings-list),
+::view-transition-new(bookings-list) {
+  animation-duration: 360ms;
+  animation-timing-function: var(--ease-out-expo);
+}
+
+::view-transition-old(mentor-results),
+::view-transition-old(bookings-list) {
+  animation-name: wf-vt-fade-out;
+}
+
+::view-transition-new(mentor-results),
+::view-transition-new(bookings-list) {
+  animation-name: wf-vt-fade-in;
+}
+
+::view-transition-group(bookings-active-tab) {
+  animation-duration: 260ms;
+  animation-timing-function: var(--ease-out-quart);
+}
+
+@keyframes wf-vt-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.992);
+    filter: saturate(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: saturate(1);
+  }
+}
+
+@keyframes wf-vt-fade-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.994);
+  }
+}
+
+.wf-overdrive-scroll {
+  contain: strict;
+  will-change: scroll-position;
+  transform: translateZ(0);
+}
+
+.wf-overdrive-scroll .wf-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 170px;
+}
+
+/* Accessibility — respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .hero-enter {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+  .wf-reveal {
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .wf-live-dot,
+  .wf-rotating-copy {
+    animation: none !important;
+  }
+  .wf-hero-drift,
+  .wf-hero-drift-alt,
+  .wf-btn-mentor-glow {
+    animation: none !important;
+  }
+  a.wf-card, button.wf-card {
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease !important;
+  }
+  a.wf-card:hover, button.wf-card:hover {
+    transform: none !important;
+    box-shadow: var(--shadow-card) !important;
+  }
+
+  /* Loading animations — reduced motion alternatives */
+  .wf-skeleton,
+  .wf-skeleton-text,
+  .wf-skeleton-title,
+  .wf-skeleton-avatar,
+  .wf-skeleton-button,
+  .wf-skeleton-card,
+  .wf-skeleton-image {
+    animation: none !important;
+    background: var(--color-paper-2) !important;
+  }
+  .wf-loading-shell,
+  .wf-loading-stagger > * {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .wf-loading-bar::after,
+  .wf-shimmer::after {
+    animation: none !important;
+    display: none !important;
+  }
+  .wf-loading-spinner,
+  .wf-loading-spinner-xs,
+  .wf-loading-spinner-sm,
+  .wf-loading-spinner-lg,
+  .wf-loading-spinner-xl,
+  .wf-loading-circular,
+  .wf-loading-circular-path {
+    animation: none !important;
+  }
+  .wf-loading-dots span,
+  .wf-loading-bounce span {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .wf-progress-indeterminate .wf-progress-bar {
+    animation: none !important;
+    width: 100% !important;
+  }
+  .wf-btn-loading::after {
+    animation: none !important;
+  }
+  .wf-loading-pulse,
+  .wf-loading-breathe,
+  .wf-page-loader-text {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+  .wf-page-loader {
+    animation: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .milestone-pop         { animation: none !important; }
+  .wf-completion-banner  { animation: none !important; opacity: 1 !important; transform: none !important; }
+  .wf-success-banner     { animation: none !important; opacity: 1 !important; transform: none !important; }
+  .star-pop              { animation: none !important; }
+  .wf-goal-completed     { animation: none !important; opacity: 1 !important; transform: none !important; }
+  .wf-toast              { animation: none !important; opacity: 1 !important; transform: none !important; }
+  ::view-transition-old(mentor-results),
+  ::view-transition-new(mentor-results),
+  ::view-transition-old(bookings-list),
+  ::view-transition-new(bookings-list),
+  ::view-transition-group(bookings-active-tab) {
+    animation: none !important;
+  }
+}
+
+/* ============================================================
+   DARK MODE — deep indigo, not corporate blue-gray
+   Applied when <html data-theme="dark">
+   ============================================================ */
+[data-theme="dark"] {
+  /* Core palette */
+  --color-ink:        #EEE6DA;
+  --color-ink-2:      #C9BFAF;
+  --color-ink-3:      #9E9486;
+  --color-blue:       #69A89A;
+  --color-blue-hover: #7FB8AA;
+  --color-bg:         #1B1A17;
+  --color-surface:    #24211D;
+  --color-border:     #3C362F;
+  --color-muted:      #2C2823;
+  --color-success:    #7BC495;
+  --color-warning:    #D9A773;
+  --color-error:      #E78D85;
+  --color-hero-bg:    #171F1C;
+
+  /* Accent palette (dark) */
+  --color-accent:         oklch(0.73 0.10 43);
+  --color-accent-hover:   oklch(0.79 0.10 43);
+  --color-accent-soft:    oklch(0.27 0.04 43);
+  --color-teal:           oklch(0.74 0.09 210);
+  --color-teal-soft:      oklch(0.25 0.03 210);
+  --color-info-soft:      oklch(0.25 0.03 270);
+
+  --color-success-bg:     oklch(0.29 0.05 152);
+  --color-success-border: oklch(0.45 0.08 152);
+  --color-warning-bg:     oklch(0.32 0.05 74);
+  --color-warning-border: oklch(0.52 0.09 74);
+  --color-error-bg:       oklch(0.29 0.05 24);
+  --color-error-border:   oklch(0.50 0.09 24);
+  --color-info-bg:        oklch(0.28 0.05 270);
+  --color-info-border:    oklch(0.49 0.08 270);
+
+  /* Legacy aliases */
+  --color-paper:   #1B1A17;
+  --color-paper-2: #24211D;
+  --color-line:    #3C362F;
+  --color-link:    #69A89A;
+  --color-warn:    #D9A773;
+
+  /* Shadows */
+  --shadow-card:     0 2px 8px rgba(19,9,5,0.40), 0 1px 2px rgba(19,9,5,0.30);
+  --shadow-dropdown: 0 6px 24px rgba(19,9,5,0.54);
+  --shadow-modal:    0 12px 40px rgba(19,9,5,0.64);
+  --shadow-topnav:   0 1px 0 rgba(19,9,5,0.32);
+}
+
+/* Dark mode — badge bg tints */
+[data-theme="dark"] .wf-badge-success { background: var(--color-success-bg); color: #86efac; border-color: var(--color-success-border); }
+[data-theme="dark"] .wf-badge-warn    { background: var(--color-warning-bg); color: #fcd34d; border-color: var(--color-warning-border); }
+[data-theme="dark"] .wf-badge-error   { background: var(--color-error-bg); color: #fca5a5; border-color: var(--color-error-border); }
+[data-theme="dark"] .wf-badge-info    { background: var(--color-info-bg); color: #a5b4fc; border-color: var(--color-info-border); }
+[data-theme="dark"] .wf-badge-neutral { background: var(--color-muted); color: var(--color-ink-3); border-color: var(--color-border); }
+
+[data-theme="dark"] html,
+[data-theme="dark"] body,
+[data-theme="dark"] #root {
+  background: var(--color-bg);
+}
+
+/* Dark mode — focus ring */
+[data-theme="dark"] .wf-input:focus,
+[data-theme="dark"] .wf-textarea:focus,
+[data-theme="dark"] .wf-select:focus,
+[data-theme="dark"] .wf-input-box:focus {
+  box-shadow: 0 0 0 3px rgba(129,140,248,0.25);
+}

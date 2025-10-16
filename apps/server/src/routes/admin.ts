@@ -1,0 +1,290 @@
+import { Router } from "express";
+import { z } from "zod";
+import { prisma } from "../lib/prisma.js";
+import { requireAuth } from "../middleware/auth.js";
+import { requireAdmin } from "../middleware/auth.js";
+
+const router = Router();
+
+// All admin routes require auth + admin role
+router.use(requireAuth, requireAdmin);
+
+// GET /api/admin/stats — platform overview statistics
+router.get("/stats", async (_req, res) => {
+  const [
+    totalUsers,
+    totalMentors,
+    totalMentees,
+    totalPrograms,
+    totalBookings,
+    activeBookings,
+    totalSessions,
+    activeSessions,
+    pendingMentors,
+    totalRevenue,
+  ] = await Promise.all([
+    prisma.user.count(),
+    prisma.user.count({ where: { role: "MENTOR" } }),
+    prisma.user.count({ where: { role: "MENTEE" } }),
+    prisma.program.count({ where: { isPublished: true } }),
+    prisma.booking.count(),
+    prisma.booking.count({ where: { status: { in: ["ACTIVE", "CONFIRMED"] } } }),
+    prisma.mentoringSession.count(),
+    prisma.mentoringSession.count({ where: { status: "SCHEDULED" } }),
+    prisma.mentorProfile.count({ where: { isApproved: false } }),
+    prisma.booking.aggregate({ _sum: { totalPrice: true }, where: { status: "COMPLETED" } }),
+  ]);
+
+  return res.json({
+    stats: {
+      totalUsers,
+      totalMentors,
+      totalMentees,
+      totalPrograms,
+      totalBookings,
+      activeBookings,
+      totalSessions,
+      activeSessions,
+      pendingMentors,
+      totalRevenue: totalRevenue._sum.totalPrice ? parseFloat(String(totalRevenue._sum.totalPrice)) : 0,
+    },
+  });
+});
+
+// GET /api/admin/users — paginated user list with search
+router.get("/users", async (req, res) => {
+  const page = Math.max(1, parseInt(String(req.query.page ?? "1")));
+  const limit = Math.min(50, Math.max(1, parseInt(String(req.query.limit ?? "20"))));
+  const skip = (page - 1) * limit;
+  const search = String(req.query.search ?? "").trim();
+  const role = req.query.role as string | undefined;
+
+  const where = {
+    ...(search
+      ? {
+          OR: [
+            { email: { contains: search, mode: "insensitive" as const } },
+            { firstName: { contains: search, mode: "insensitive" as const } },
+            { lastName: { contains: search, mode: "insensitive" as const } },
+          ],
+        }
+      : {}),
+    ...(role && ["MENTEE", "MENTOR", "ADMIN"].includes(role)
+      ? { role: role as "MENTEE" | "MENTOR" | "ADMIN" }
+      : {}),
+  };
+
+  const [users, total] = await Promise.all([
+    prisma.user.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        isVerified: true,
+        createdAt: true,
+        avatarUrl: true,
+        mentorProfile: { select: { id: true, isApproved: true, headline: true } },
+      },
+    }),
+    prisma.user.count({ where }),
+  ]);
+
+  return res.json({
+    users,
+    pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+  });
+});
+
+// GET /api/admin/users/:id — single user detail
+router.get("/users/:id", async (req, res) => {
+  const user = await prisma.user.findUnique({
+    where: { id: req.params.id },
+    include: {
+      mentorProfile: true,
+      menteeProfile: true,
+      bookings: { orderBy: { createdAt: "desc" }, take: 5, include: { program: { select: { title: true } } } },
+    },
+  });
+
+  if (!user) return res.status(404).json({ error: "User not found" });
+  return res.json({ user });
+});
+
+// PATCH /api/admin/users/:id — update user role
+router.patch("/users/:id", async (req, res) => {
+  const parsed = z.object({
+    role: z.enum(["MENTEE", "MENTOR", "ADMIN"]).optional(),
+    isVerified: z.boolean().optional(),
+  }).safeParse(req.body);
+
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.errors[0].message });
+
+  const user = await prisma.user.findUnique({ where: { id: req.params.id } });
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  const updated = await prisma.user.update({
+    where: { id: req.params.id },
+    data: parsed.data,
+    select: { id: true, email: true, firstName: true, lastName: true, role: true, isVerified: true },
+  });
+
+  return res.json({ user: updated });
+});
+
+// GET /api/admin/mentors/pending — unapproved mentor profiles
+router.get("/mentors/pending", async (_req, res) => {
+  const mentors = await prisma.mentorProfile.findMany({
+    where: { isApproved: false },
+    orderBy: { createdAt: "asc" },
+    include: {
+      user: { select: { id: true, email: true, firstName: true, lastName: true, avatarUrl: true } },
+    },
+  });
+
+  return res.json({ mentors });
+});
+
+// PATCH /api/admin/mentors/:id/approve — approve a mentor
+router.patch("/mentors/:id/approve", async (req, res) => {
+  const profile = await prisma.mentorProfile.findUnique({ where: { id: req.params.id } });
+  if (!profile) return res.status(404).json({ error: "Mentor profile not found" });
+
+  const updated = await prisma.mentorProfile.update({
+    where: { id: req.params.id },
+    data: { isApproved: true },
+    include: { user: { select: { id: true, email: true, firstName: true, lastName: true } } },
+  });
+
+  return res.json({ mentor: updated });
+});
+
+// DELETE /api/admin/mentors/:id — reject/remove mentor profile
+router.delete("/mentors/:id", async (req, res) => {
+  const profile = await prisma.mentorProfile.findUnique({ where: { id: req.params.id } });
+  if (!profile) return res.status(404).json({ error: "Mentor profile not found" });
+
+  await prisma.mentorProfile.delete({ where: { id: req.params.id } });
+  return res.json({ message: "Mentor profile removed" });
+});
+
+// GET /api/admin/programs — all programs with mentor info
+router.get("/programs", async (req, res) => {
+  const page = Math.max(1, parseInt(String(req.query.page ?? "1")));
+  const limit = Math.min(50, Math.max(1, parseInt(String(req.query.limit ?? "20"))));
+  const skip = (page - 1) * limit;
+  const search = String(req.query.search ?? "").trim();
+
+  const where = search
+    ? { title: { contains: search, mode: "insensitive" as const } }
+    : {};
+
+  const [programs, total] = await Promise.all([
+    prisma.program.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+      include: {
+        mentor: { select: { id: true, user: { select: { firstName: true, lastName: true, email: true } } } },
+        _count: { select: { bookings: true } },
+      },
+    }),
+    prisma.program.count({ where }),
+  ]);
+
+  return res.json({ programs, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } });
+});
+
+// PATCH /api/admin/users/:id/ban — toggle ban status
+router.patch("/users/:id/ban", async (req, res) => {
+  const parsed = z.object({ isBanned: z.boolean() }).safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "Invalid data" });
+
+  const user = await prisma.user.findUnique({ where: { id: req.params.id } });
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  const updated = await prisma.user.update({
+    where: { id: req.params.id },
+    data: { isBanned: parsed.data.isBanned },
+    select: { id: true, email: true, firstName: true, lastName: true, role: true, isBanned: true },
+  });
+
+  return res.json({ user: updated });
+});
+
+// PATCH /api/admin/users/:id/suspend — set suspension period
+router.patch("/users/:id/suspend", async (req, res) => {
+  const parsed = z.object({ suspendedUntil: z.string().nullable() }).safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "Invalid data" });
+
+  const user = await prisma.user.findUnique({ where: { id: req.params.id } });
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  const updated = await prisma.user.update({
+    where: { id: req.params.id },
+    data: { suspendedUntil: parsed.data.suspendedUntil ? new Date(parsed.data.suspendedUntil) : null },
+    select: { id: true, email: true, firstName: true, lastName: true, role: true, suspendedUntil: true },
+  });
+
+  return res.json({ user: updated });
+});
+
+// GET /api/admin/reports — paginated reports list
+router.get("/reports", async (req, res) => {
+  const page = Math.max(1, parseInt(String(req.query.page ?? "1")));
+  const limit = 20;
+  const skip = (page - 1) * limit;
+  const status = req.query.status as string | undefined;
+
+  const where = status ? { status: status as any } : {};
+
+  const [reports, total] = await Promise.all([
+    prisma.report.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+      include: {
+        reporter: { select: { id: true, email: true, firstName: true, lastName: true } },
+        reported: { select: { id: true, email: true, firstName: true, lastName: true } },
+        message: { select: { id: true, content: true, createdAt: true } },
+      },
+    }),
+    prisma.report.count({ where }),
+  ]);
+
+  return res.json({ reports, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } });
+});
+
+// PATCH /api/admin/reports/:id — update report status and notes
+router.patch("/reports/:id", async (req, res) => {
+  const parsed = z.object({
+    status: z.enum(["PENDING", "REVIEWED", "RESOLVED", "DISMISSED"]).optional(),
+    adminNotes: z.string().max(1000).optional(),
+  }).safeParse(req.body);
+
+  if (!parsed.success) return res.status(400).json({ error: "Invalid data" });
+
+  const report = await prisma.report.findUnique({ where: { id: req.params.id } });
+  if (!report) return res.status(404).json({ error: "Report not found" });
+
+  const updated = await prisma.report.update({
+    where: { id: req.params.id },
+    data: parsed.data,
+    include: {
+      reporter: { select: { id: true, email: true, firstName: true, lastName: true } },
+      reported: { select: { id: true, email: true, firstName: true, lastName: true } },
+      message: { select: { id: true, content: true } },
+    },
+  });
+
+  return res.json({ report: updated });
+});
+
+export default router;

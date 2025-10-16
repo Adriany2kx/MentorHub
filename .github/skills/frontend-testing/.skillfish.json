@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "owner": "langgenius",
+  "repo": "dify",
+  "path": ".agents/skills/frontend-testing",
+  "branch": "main",
+  "sha": "6caa2c125be63c51627963bc2cd325b9f01636da"
+}
