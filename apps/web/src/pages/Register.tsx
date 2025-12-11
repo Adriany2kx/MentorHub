@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import ReCAPTCHA from "react-google-recaptcha";
 import { useAuth } from "../context/AuthContext";
 import { registerSchema } from "../lib/validators";
 
@@ -77,6 +78,7 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -90,10 +92,11 @@ export default function Register() {
 
     setIsLoading(true);
     try {
-      await register(email, password);
+      await register(email, password, recaptchaToken || undefined);
       navigate("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed. Please try again.");
+      setRecaptchaToken(null);
     } finally {
       setIsLoading(false);
     }
@@ -137,10 +140,18 @@ export default function Register() {
               autoComplete="new-password"
             />
             {error && <p role="alert" className="wf-error-text">{error}</p>}
+            <div className="flex justify-center py-4">
+              <ReCAPTCHA
+                sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                onChange={(token) => setRecaptchaToken(token)}
+                onExpired={() => setRecaptchaToken(null)}
+                onErrored={() => setRecaptchaToken(null)}
+              />
+            </div>
             <button
               type="submit"
               className="wf-btn wf-btn-primary w-full mt-2"
-              disabled={isLoading}
+              disabled={isLoading || recaptchaToken === null}
             >
               {isLoading ? "Creating account…" : "Create Account"}
             </button>

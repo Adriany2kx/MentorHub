@@ -58,7 +58,7 @@ export default function ReportModal({ isOpen, onClose, reportedId, messageId }: 
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6" style={{ background: "var(--color-paper)" }}>
+      <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full p-8" style={{ background: "var(--color-paper)" }}>
         <h2 className="wf-h3 mb-1">Report User</h2>
         <p className="wf-text-sm mb-4" style={{ color: "var(--color-ink-3)" }}>
           {messageId ? "Report this message" : "Report this user"}

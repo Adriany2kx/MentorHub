@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getSession, completeSession, cancelSession } from "../lib/api";
-import type { SessionDetail as ISessionDetail } from "../lib/api";
+import { getSession, completeSession, cancelSession, getSessionAgenda, generateSessionSummary, extractActionItems } from "../lib/api";
+import type { SessionDetail as ISessionDetail, AiAgendaItem, AiSessionSummary } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import StatusBadge from "../components/StatusBadge";
@@ -23,6 +23,14 @@ export default function SessionDetail() {
   const [menteeFeedback, setMenteeFeedback] = useState("");
   const [rating, setRating] = useState(0);
   const [cancelConfirmArmed, setCancelConfirmArmed] = useState(false);
+
+  // AI state
+  const [agenda, setAgenda] = useState<AiAgendaItem[] | null>(null);
+  const [agendaLoading, setAgendaLoading] = useState(false);
+  const [aiSummary, setAiSummary] = useState<AiSessionSummary | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [actionItemsLoading, setActionItemsLoading] = useState(false);
+  const [actionItemsResult, setActionItemsResult] = useState<{ created: number; note?: string } | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -81,6 +89,50 @@ export default function SessionDetail() {
       toast(err instanceof Error ? err.message : "Failed to cancel session", "error");
     } finally {
       setIsActing(false);
+    }
+  }
+
+  async function handleGenerateAgenda() {
+    if (!session) return;
+    setAgendaLoading(true);
+    try {
+      const { agenda: items } = await getSessionAgenda(session.id);
+      setAgenda(items);
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Could not generate agenda", "error");
+    } finally {
+      setAgendaLoading(false);
+    }
+  }
+
+  async function handleGenerateSummary() {
+    if (!session) return;
+    setSummaryLoading(true);
+    try {
+      const { summary } = await generateSessionSummary(session.id, {
+        mentorNotes: session.mentorNotes ?? undefined,
+        menteeFeedback: session.menteeFeedback ?? undefined,
+      });
+      setAiSummary(summary);
+      toast("AI summary generated", "success");
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Could not generate summary", "error");
+    } finally {
+      setSummaryLoading(false);
+    }
+  }
+
+  async function handleExtractActionItems() {
+    if (!session) return;
+    setActionItemsLoading(true);
+    try {
+      const result = await extractActionItems(session.id);
+      setActionItemsResult({ created: result.created, note: result.note });
+      toast(result.created > 0 ? `${result.created} milestone${result.created > 1 ? "s" : ""} created` : "No action items found", result.created > 0 ? "success" : "warning");
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Could not extract action items", "error");
+    } finally {
+      setActionItemsLoading(false);
     }
   }
 
@@ -157,6 +209,56 @@ export default function SessionDetail() {
           </div>
         </div>
 
+        {/* AI Agenda — pre-session */}
+        {session.status === "SCHEDULED" && (
+          <div className="wf-card-flush mb-5">
+            <div className="wf-card-header" style={{ justifyContent: "space-between" }}>
+              <span>Session Agenda</span>
+              {!agenda && (
+                <button
+                  onClick={handleGenerateAgenda}
+                  disabled={agendaLoading}
+                  className="wf-btn wf-btn-secondary"
+                  style={{ fontSize: 12, padding: "4px 12px" }}
+                >
+                  {agendaLoading ? "Generating…" : "✦ Generate with AI"}
+                </button>
+              )}
+            </div>
+            {!agenda && !agendaLoading && (
+              <div className="p-5">
+                <p className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>
+                  Get a personalised agenda based on your goals, skills, and previous sessions.
+                </p>
+              </div>
+            )}
+            {agendaLoading && (
+              <div className="p-5 wf-text-sm" style={{ color: "var(--color-ink-3)" }}>Generating your agenda…</div>
+            )}
+            {agenda && (
+              <div className="divide-y" style={{ borderColor: "var(--color-border)" }}>
+                {agenda.map((item, i) => (
+                  <div key={i} className="px-5 py-4 flex items-start gap-4">
+                    <div
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5"
+                      style={{ background: "var(--color-blue)", color: "#fff" }}
+                    >
+                      {i + 1}
+                    </div>
+                    <div className="flex-1">
+                      <p className="wf-text font-medium">{item.item}</p>
+                      <p className="wf-text-xs mt-0.5" style={{ color: "var(--color-ink-2)" }}>{item.rationale}</p>
+                    </div>
+                    <span className="wf-text-xs shrink-0 mt-0.5" style={{ color: "var(--color-ink-3)" }}>
+                      ~{item.estimatedMinutes}m
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Notes & Feedback */}
         {(session.mentorNotes || session.menteeFeedback || session.rating) && (
           <div className="wf-card-flush mb-5">
@@ -193,6 +295,100 @@ export default function SessionDetail() {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* AI Summary — post-session */}
+        {session.status === "COMPLETED" && (session.mentorNotes || session.menteeFeedback) && (
+          <div className="wf-card-flush mb-5">
+            <div className="wf-card-header" style={{ justifyContent: "space-between" }}>
+              <span>AI Summary</span>
+              {!aiSummary && (
+                <button
+                  onClick={handleGenerateSummary}
+                  disabled={summaryLoading}
+                  className="wf-btn wf-btn-secondary"
+                  style={{ fontSize: 12, padding: "4px 12px" }}
+                >
+                  {summaryLoading ? "Summarising…" : "✦ Generate with AI"}
+                </button>
+              )}
+            </div>
+            {!aiSummary && !summaryLoading && (
+              <div className="p-5">
+                <p className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>
+                  Structure your notes into key points, decisions, action items, and follow-up questions.
+                </p>
+              </div>
+            )}
+            {summaryLoading && (
+              <div className="p-5 wf-text-sm" style={{ color: "var(--color-ink-3)" }}>Analysing session notes…</div>
+            )}
+            {aiSummary && (
+              <div className="p-5 space-y-5">
+                {aiSummary.keyPoints.length > 0 && (
+                  <div>
+                    <p className="wf-eyebrow mb-2">Key Points</p>
+                    <ul className="space-y-1">
+                      {aiSummary.keyPoints.map((pt, i) => (
+                        <li key={i} className="wf-text-sm flex gap-2">
+                          <span style={{ color: "var(--color-blue)" }}>•</span> {pt}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {aiSummary.decisions.length > 0 && (
+                  <div>
+                    <p className="wf-eyebrow mb-2">Decisions Made</p>
+                    <ul className="space-y-1">
+                      {aiSummary.decisions.map((d, i) => (
+                        <li key={i} className="wf-text-sm flex gap-2">
+                          <span style={{ color: "var(--color-success, #10b981)" }}>✓</span> {d}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {aiSummary.actionItems.length > 0 && (
+                  <div>
+                    <p className="wf-eyebrow mb-2">Action Items</p>
+                    <ul className="space-y-1">
+                      {aiSummary.actionItems.map((a, i) => (
+                        <li key={i} className="wf-text-sm flex gap-2">
+                          <span style={{ color: "var(--color-warning, #f59e0b)" }}>→</span> {a}
+                        </li>
+                      ))}
+                    </ul>
+                    <button
+                      onClick={handleExtractActionItems}
+                      disabled={actionItemsLoading || !!actionItemsResult}
+                      className="wf-btn wf-btn-secondary mt-3"
+                      style={{ fontSize: 12 }}
+                    >
+                      {actionItemsLoading ? "Creating milestones…"
+                        : actionItemsResult ? `${actionItemsResult.created} milestone${actionItemsResult.created !== 1 ? "s" : ""} created`
+                        : "✦ Add to my goals as milestones"}
+                    </button>
+                    {actionItemsResult?.note && (
+                      <p className="wf-text-xs mt-1" style={{ color: "var(--color-ink-3)" }}>{actionItemsResult.note}</p>
+                    )}
+                  </div>
+                )}
+                {aiSummary.followUpQuestions.length > 0 && (
+                  <div>
+                    <p className="wf-eyebrow mb-2">Follow-up Questions</p>
+                    <ul className="space-y-1">
+                      {aiSummary.followUpQuestions.map((q, i) => (
+                        <li key={i} className="wf-text-sm flex gap-2" style={{ color: "var(--color-ink-2)" }}>
+                          <span>?</span> {q}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 

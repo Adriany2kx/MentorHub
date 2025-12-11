@@ -72,7 +72,7 @@ export default function PaymentHistory() {
                       </p>
                     </td>
                     <td>
-                      <p className="wf-text font-semibold">£{(payment.amount / 100).toFixed(2)}</p>
+                      <p className="wf-text font-semibold">£{parseFloat(payment.amount).toFixed(2)}</p>
                     </td>
                     <td>
                       <span className={`wf-badge ${STATUS_BADGE[payment.status]}`}>{payment.status}</span>

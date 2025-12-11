@@ -48,6 +48,7 @@ coverage
 *.temp
 .cache
 
+
 # Claude Code
 .claude/
 .claude.json
@@ -57,3 +58,7 @@ CLAUDE.md
 openspec/
 GEMINI.md
 .github/copilot-instructions.md
+
+# Markdown files (internal docs, design system, AI tooling)
+*.md
+!/README.md

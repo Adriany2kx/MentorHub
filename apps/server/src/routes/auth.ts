@@ -4,6 +4,8 @@ import { prisma } from "../lib/prisma.js";
 import { hashPassword, verifyPassword, generateToken, hashToken } from "../lib/hash.js";
 import { createSession, revokeSession, revokeAllUserSessions } from "../lib/session.js";
 import { sendVerificationEmail, sendPasswordResetEmail } from "../lib/email.js";
+import { verifyRecaptcha } from "../lib/recaptcha.js";
+import { logger } from "../lib/logger.js";
 import { requireAuth } from "../middleware/auth.js";
 import { loginLimiter, registerLimiter, resetLimiter } from "../middleware/rateLimiter.js";
 import { env } from "../config/env.js";
@@ -16,11 +18,13 @@ const RESET_GENERIC_MESSAGE = "If that email exists, we sent a reset link";
 const RegisterBody = z.object({
   email: z.string().email().transform((e) => e.toLowerCase().trim()),
   password: z.string().min(8, "Password must be at least 8 characters"),
+  recaptchaToken: z.string().optional(),
 });
 
 const LoginBody = z.object({
   email: z.string().email().transform((e) => e.toLowerCase().trim()),
   password: z.string().min(1),
+  recaptchaToken: z.string().optional(),
 });
 
 const RequestResetBody = z.object({
@@ -60,7 +64,13 @@ router.post("/register", registerLimiter, async (req, res) => {
       return;
     }
 
-    const { email, password } = parsed.data;
+    const { email, password, recaptchaToken } = parsed.data;
+
+    const recaptchaValid = await verifyRecaptcha(recaptchaToken || "", req.ip);
+    if (!recaptchaValid) {
+      res.status(400).json({ error: "CAPTCHA verification failed. Please try again." });
+      return;
+    }
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
@@ -82,9 +92,9 @@ router.post("/register", registerLimiter, async (req, res) => {
 
     try {
       await sendVerificationEmail(email, verificationToken);
-    } catch {
+    } catch (err) {
       // Log but don't fail registration if email fails
-      console.error("Failed to send verification email to", email);
+      logger.error({ err, email }, "Failed to send verification email");
     }
 
     const { session: _, token } = await createSession(user.id);
@@ -102,7 +112,7 @@ router.post("/register", registerLimiter, async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("Registration error:", err);
+    logger.error({ err }, "Registration error");
     res.status(500).json({ error: "Registration failed. Please try again." });
   }
 });
@@ -115,7 +125,15 @@ router.post("/login", loginLimiter, async (req, res) => {
     return;
   }
 
-  const { email, password } = parsed.data;
+  const { email, password, recaptchaToken } = parsed.data;
+
+  if (recaptchaToken) {
+    const recaptchaValid = await verifyRecaptcha(recaptchaToken, req.ip);
+    if (!recaptchaValid) {
+      res.status(400).json({ error: "CAPTCHA verification failed. Please try again." });
+      return;
+    }
+  }
 
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
@@ -180,7 +198,7 @@ router.get("/me", requireAuth, async (req, res) => {
 });
 
 // POST /api/auth/verify-email
-router.post("/verify-email", async (req, res) => {
+router.post("/verify-email", resetLimiter, async (req, res) => {
   const { token } = req.body as { token?: string };
   if (!token) {
     res.status(400).json({ error: "Token is required" });
@@ -236,8 +254,8 @@ router.post("/request-reset", resetLimiter, async (req, res) => {
 
     try {
       await sendPasswordResetEmail(email, resetToken);
-    } catch {
-      console.error("Failed to send reset email to", email);
+    } catch (err) {
+      logger.error({ err, email }, "Failed to send reset email");
     }
   }
 
@@ -246,7 +264,7 @@ router.post("/request-reset", resetLimiter, async (req, res) => {
 });
 
 // POST /api/auth/reset-password
-router.post("/reset-password", async (req, res) => {
+router.post("/reset-password", resetLimiter, async (req, res) => {
   const parsed = ResetPasswordBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.errors[0].message });

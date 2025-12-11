@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import ReCAPTCHA from "react-google-recaptcha";
 import { useAuth } from "../context/AuthContext";
 import { loginSchema } from "../lib/validators";
 
@@ -24,6 +25,8 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -37,10 +40,15 @@ export default function Login() {
 
     setIsLoading(true);
     try {
-      await login(email, password);
+      const token = failedAttempts >= 4 ? recaptchaToken : undefined;
+      await login(email, password, token ?? undefined);
+      setFailedAttempts(0);
+      setRecaptchaToken(null);
       navigate("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed. Please try again.");
+      setFailedAttempts((prev) => prev + 1);
+      setRecaptchaToken(null);
     } finally {
       setIsLoading(false);
     }
@@ -105,10 +113,20 @@ export default function Login() {
               </div>
             </div>
             {error && <p role="alert" className="wf-error-text">{error}</p>}
+            {failedAttempts >= 4 && (
+              <div className="flex justify-center py-4">
+                <ReCAPTCHA
+                  sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                  onChange={(token) => setRecaptchaToken(token)}
+                  onExpired={() => setRecaptchaToken(null)}
+                  onErrored={() => setRecaptchaToken(null)}
+                />
+              </div>
+            )}
             <button
               type="submit"
               className="wf-btn wf-btn-primary w-full mt-2"
-              disabled={isLoading}
+              disabled={isLoading || (failedAttempts >= 4 && recaptchaToken === null)}
             >
               {isLoading ? "Logging in…" : "Log In"}
             </button>

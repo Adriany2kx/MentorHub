@@ -3,13 +3,19 @@ import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import RoleBadge from "../components/RoleBadge";
 import StatusBadge from "../components/StatusBadge";
-import { listMySessions, listMyBookings } from "../lib/api";
-import type { SessionDetail as ISessionDetail, Booking } from "../lib/api";
+import { listMySessions, listMyBookings, getMentorRecommendations, getProfileQuality, getMentor, getProgressInsights } from "../lib/api";
+import type { SessionDetail as ISessionDetail, Booking, AiMentorRecommendation, AiProfileQuality, MentorDetail, AiInsights } from "../lib/api";
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const [upcomingSessions, setUpcomingSessions] = useState<ISessionDetail[]>([]);
   const [bookingStats, setBookingStats] = useState({ total: 0, active: 0, pending: 0 });
+  const [recommendations, setRecommendations] = useState<AiMentorRecommendation[]>([]);
+  const [recommendedMentors, setRecommendedMentors] = useState<Record<string, MentorDetail>>({});
+  const [recLoading, setRecLoading] = useState(false);
+  const [profileQuality, setProfileQuality] = useState<AiProfileQuality | null>(null);
+  const [insights, setInsights] = useState<AiInsights | null>(null);
+  const [insightsLoading, setInsightsLoading] = useState(false);
 
   const displayName =
     user?.firstName || user?.lastName
@@ -51,6 +57,36 @@ export default function Dashboard() {
       })
       .catch(() => {/* silently ignore */});
   }, []);
+
+  useEffect(() => {
+    if (user?.role !== "MENTEE") return;
+
+    getProfileQuality().then(setProfileQuality).catch(() => {});
+
+    async function fetchInsights() {
+      setInsightsLoading(true);
+      try {
+        const d = await getProgressInsights();
+        setInsights(d.insights);
+      } catch { /* silently ignore */ }
+      finally { setInsightsLoading(false); }
+    }
+    void fetchInsights();
+
+    setRecLoading(true);
+    getMentorRecommendations()
+      .then(({ recommendations: recs }) => {
+        setRecommendations(recs);
+        return Promise.all(recs.map((r) => getMentor(r.mentorId).catch(() => null)));
+      })
+      .then((mentors) => {
+        const map: Record<string, MentorDetail> = {};
+        mentors.forEach((m) => { if (m) map[m.mentor.id] = m.mentor; });
+        setRecommendedMentors(map);
+      })
+      .catch(() => {})
+      .finally(() => setRecLoading(false));
+  }, [user?.role]);
 
   if (user && !user.firstName) {
     return <Navigate to="/profile/setup" />;
@@ -221,7 +257,55 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div>
+          <div className="space-y-5">
+            {user?.role === "MENTEE" && profileQuality && (
+              <div className="wf-card-flush">
+                <div className="wf-card-header">Profile Quality</div>
+                <div className="p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="wf-text font-semibold">{profileQuality.score}/100</span>
+                    <span
+                      className="wf-text-xs font-semibold px-2 py-0.5 rounded-full"
+                      style={{
+                        background: profileQuality.score >= 80 ? "var(--color-success-bg, #d1fae5)" : profileQuality.score >= 50 ? "var(--color-warn-bg, #fef3c7)" : "var(--color-error-bg, #fee2e2)",
+                        color: profileQuality.score >= 80 ? "var(--color-success, #065f46)" : profileQuality.score >= 50 ? "var(--color-warn, #92400e)" : "var(--color-error, #991b1b)",
+                      }}
+                    >
+                      {profileQuality.score >= 80 ? "Strong" : profileQuality.score >= 50 ? "Good" : "Needs work"}
+                    </span>
+                  </div>
+                  <div className="w-full h-2 rounded-full overflow-hidden mb-4" style={{ background: "var(--color-border)" }}>
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${profileQuality.score}%`,
+                        background: profileQuality.score >= 80 ? "var(--color-success, #10b981)" : profileQuality.score >= 50 ? "var(--color-warn, #f59e0b)" : "var(--color-error, #ef4444)",
+                      }}
+                    />
+                  </div>
+                  {profileQuality.suggestions.length > 0 && (
+                    <ul className="space-y-1">
+                      {profileQuality.suggestions.map((s) => (
+                        <li key={s}>
+                          <Link
+                            to="/profile/edit"
+                            className="wf-text-xs flex items-center gap-2 py-1 rounded transition-colors no-underline"
+                            style={{ color: "var(--color-ink-2)" }}
+                            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-blue)")}
+                            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-ink-2)")}
+                          >
+                            <span style={{ color: "var(--color-warn, #f59e0b)", flexShrink: 0 }}>→</span>
+                            {s}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div>
             <p className="wf-eyebrow mb-3">Quick Links</p>
             <div className="wf-card-flush overflow-hidden">
               {[
@@ -232,6 +316,7 @@ export default function Dashboard() {
                 { to: "/mentors", label: "Browse Mentors", sub: "Find the right mentor" },
                 { to: "/programs", label: "Browse Programs", sub: "Explore programs" },
                 ...(user?.role === "MENTOR" || user?.role === "ADMIN" ? [
+                  { to: "/mentor/payments", label: "My Earnings", sub: "View completed session payments" },
                   { to: "/mentor/programs", label: "Manage Programs", sub: "Create and edit programs" },
                   { to: "/mentor/availability", label: "Set Availability", sub: "Manage your schedule" },
                 ] : []),
@@ -258,8 +343,121 @@ export default function Dashboard() {
                 </Link>
               ))}
             </div>
+            </div>
           </div>
         </div>
+
+        {user?.role === "MENTEE" && (insights || insightsLoading) && (
+          <div className="mt-5 wf-card-flush">
+            <div className="wf-card-header" style={{ justifyContent: "space-between" }}>
+              <span>Weekly Progress Insights</span>
+              <span className="wf-text-xs" style={{ color: "var(--color-ink-3)" }}>AI · refreshes every 24h</span>
+            </div>
+            {insightsLoading && (
+              <div className="p-5 wf-text-sm" style={{ color: "var(--color-ink-3)" }}>Analysing your progress…</div>
+            )}
+            {insights && (
+              <div className="p-5 space-y-4">
+                {insights.highlights.length > 0 && (
+                  <div>
+                    <p className="wf-eyebrow mb-2">Highlights</p>
+                    <ul className="space-y-1">
+                      {insights.highlights.map((h, i) => (
+                        <li key={i} className="wf-text-sm flex gap-2">
+                          <span style={{ color: "var(--color-success, #10b981)" }}>✓</span> {h}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {insights.stalledAreas.length > 0 && (
+                  <div>
+                    <p className="wf-eyebrow mb-2">Needs Attention</p>
+                    <ul className="space-y-1">
+                      {insights.stalledAreas.map((a, i) => (
+                        <li key={i} className="wf-text-sm flex gap-2">
+                          <span style={{ color: "var(--color-warn, #f59e0b)" }}>→</span> {a}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {insights.recommendations.length > 0 && (
+                  <div>
+                    <p className="wf-eyebrow mb-2">Recommendations</p>
+                    <ul className="space-y-1">
+                      {insights.recommendations.map((r, i) => (
+                        <li key={i} className="wf-text-sm flex gap-2">
+                          <span style={{ color: "var(--color-blue)" }}>•</span> {r}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <p className="wf-text-xs pt-2" style={{ color: "var(--color-ink-3)", borderTop: "1px solid var(--color-border)" }}>
+                  Session frequency: {insights.sessionFrequency}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {user?.role === "MENTEE" && (
+          <div className="mt-5 wf-card-flush">
+            <div className="wf-card-header" style={{ justifyContent: "space-between" }}>
+              <span>AI Mentor Recommendations</span>
+              <Link to="/mentors" className="wf-btn-link" style={{ fontSize: 12 }}>Browse all →</Link>
+            </div>
+            {recLoading ? (
+              <div className="p-6 wf-text-sm" style={{ color: "var(--color-ink-3)" }}>Finding your best mentor matches…</div>
+            ) : recommendations.length === 0 ? (
+              <div className="p-6">
+                <div className="wf-empty">
+                  <p className="wf-empty-title">No recommendations yet</p>
+                  <p className="wf-empty-text">Complete your mentee profile to get personalised matches.</p>
+                </div>
+              </div>
+            ) : (
+              <div className="divide-y" style={{ borderColor: "var(--color-border)" }}>
+                {recommendations.map((rec) => {
+                  const mentor = recommendedMentors[rec.mentorId];
+                  const name = mentor
+                    ? `${mentor.user.firstName ?? ""} ${mentor.user.lastName ?? ""}`.trim() || "Mentor"
+                    : "Loading…";
+                  return (
+                    <Link
+                      key={rec.mentorId}
+                      to={`/mentors/${rec.mentorId}`}
+                      className="flex items-center justify-between px-5 py-4 transition-colors no-underline"
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-bg)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "")}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="wf-text font-medium">{name}</p>
+                        {mentor?.headline && (
+                          <p className="wf-text-xs truncate mt-0.5" style={{ color: "var(--color-ink-3)" }}>{mentor.headline}</p>
+                        )}
+                        <p className="wf-text-xs mt-1" style={{ color: "var(--color-ink-2)" }}>{rec.reason}</p>
+                      </div>
+                      <div className="flex items-center gap-3 ml-4 shrink-0">
+                        <span
+                          className="text-xs font-semibold px-2.5 py-1 rounded-full"
+                          style={{
+                            background: rec.score >= 70 ? "var(--color-success-bg, #d1fae5)" : "var(--color-warn-bg, #fef3c7)",
+                            color: rec.score >= 70 ? "var(--color-success, #065f46)" : "var(--color-warn, #92400e)",
+                          }}
+                        >
+                          {rec.score}% match
+                        </span>
+                        <span style={{ color: "var(--color-ink-3)" }}>›</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

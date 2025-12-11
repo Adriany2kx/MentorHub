@@ -67,6 +67,11 @@ export interface MentorProfile {
   updatedAt: string;
 }
 
+export interface SkillEntry {
+  skill: string;
+  level: "none" | "beginner" | "intermediate" | "advanced" | "expert";
+}
+
 export interface MenteeProfile {
   id: string;
   userId: string;
@@ -74,6 +79,10 @@ export interface MenteeProfile {
   interests: string[];
   currentRole: string | null;
   targetRole: string | null;
+  skills: SkillEntry[] | null;
+  targetIndustry: string | null;
+  currentBlocker: string | null;
+  learningStyle: "structured" | "exploratory" | "project-based" | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -102,17 +111,17 @@ export interface PublicProfile {
 }
 
 // Auth endpoints
-export function register(email: string, password: string) {
+export function register(email: string, password: string, recaptchaToken?: string) {
   return request<{ user: AuthUser }>("/auth/register", {
     method: "POST",
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, ...(recaptchaToken && { recaptchaToken }) }),
   });
 }
 
-export function login(email: string, password: string) {
+export function login(email: string, password: string, recaptchaToken?: string) {
   return request<{ user: AuthUser }>("/auth/login", {
     method: "POST",
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, ...(recaptchaToken && { recaptchaToken }) }),
   });
 }
 
@@ -205,24 +214,25 @@ export function getMyMentorProfile() {
 }
 
 // Mentee profile endpoints
-export function createMenteeProfile(data: {
-  goals?: string;
+export interface MenteeProfileInput {
+  goals?: string | null;
   interests?: string[];
-  currentRole?: string;
-  targetRole?: string;
-}) {
+  currentRole?: string | null;
+  targetRole?: string | null;
+  skills?: SkillEntry[] | null;
+  targetIndustry?: string | null;
+  currentBlocker?: string | null;
+  learningStyle?: "structured" | "exploratory" | "project-based" | null;
+}
+
+export function createMenteeProfile(data: MenteeProfileInput) {
   return request<{ menteeProfile: MenteeProfile }>("/mentee/profile", {
     method: "POST",
     body: JSON.stringify(data),
   });
 }
 
-export function updateMenteeProfile(data: {
-  goals?: string | null;
-  interests?: string[];
-  currentRole?: string | null;
-  targetRole?: string | null;
-}) {
+export function updateMenteeProfile(data: MenteeProfileInput) {
   return request<{ menteeProfile: MenteeProfile }>("/mentee/profile", {
     method: "PATCH",
     body: JSON.stringify(data),
@@ -818,6 +828,7 @@ export interface AdminStats {
   totalSessions: number;
   activeSessions: number;
   pendingMentors: number;
+  pendingReports: number;
   totalRevenue: number;
 }
 
@@ -907,6 +918,11 @@ export function rejectMentor(id: string) {
   return request<{ message: string }>(`/admin/mentors/${id}`, { method: "DELETE" });
 }
 
+export function listAllMentors(filter?: "pending" | "approved") {
+  const q = filter ? `?filter=${filter}` : "";
+  return request<{ mentors: PendingMentor[] }>(`/admin/mentors${q}`);
+}
+
 export function listAdminPrograms(params?: { page?: number; search?: string }) {
   const qs = new URLSearchParams();
   if (params?.page) qs.set("page", String(params.page));
@@ -915,9 +931,21 @@ export function listAdminPrograms(params?: { page?: number; search?: string }) {
   return request<{ programs: AdminProgram[]; pagination: Pagination }>(`/admin/programs${q ? `?${q}` : ""}`);
 }
 
+export function toggleProgramPublished(id: string, isPublished: boolean) {
+  return request<{ program: AdminProgram }>(`/admin/programs/${id}`, { method: "PATCH", body: JSON.stringify({ isPublished }) });
+}
+
+export function deleteAdminProgram(id: string) {
+  return request<{ message: string }>(`/admin/programs/${id}`, { method: "DELETE" });
+}
+
 // Payment endpoints
 export function listMyPayments() {
   return request<{ payments: Payment[] }>("/payments");
+}
+
+export function listMentorPayments(page = 1) {
+  return request<{ payments: Payment[]; totalEarnings: number; pagination: Pagination }>(`/payments/mentor?page=${page}`);
 }
 
 export function recordPayment(data: { bookingId: string; stripePaymentId?: string }) {
@@ -944,20 +972,14 @@ export function confirmPayment(paymentId: string) {
 }
 
 // Report types and endpoints
-export enum ReportReason {
-  HARASSMENT = "HARASSMENT",
-  SPAM = "SPAM",
-  INAPPROPRIATE_CONTENT = "INAPPROPRIATE_CONTENT",
-  FAKE_PROFILE = "FAKE_PROFILE",
-  OTHER = "OTHER",
-}
+export type ReportReason =
+  | "HARASSMENT"
+  | "SPAM"
+  | "INAPPROPRIATE_CONTENT"
+  | "FAKE_PROFILE"
+  | "OTHER";
 
-export enum ReportStatus {
-  PENDING = "PENDING",
-  REVIEWED = "REVIEWED",
-  RESOLVED = "RESOLVED",
-  DISMISSED = "DISMISSED",
-}
+export type ReportStatus = "PENDING" | "REVIEWED" | "RESOLVED" | "DISMISSED";
 
 export interface Report {
   id: string;
@@ -997,4 +1019,146 @@ export function banUser(userId: string, isBanned: boolean) {
 
 export function suspendUser(userId: string, suspendedUntil: string | null) {
   return request<{ user: AdminUser }>(`/admin/users/${userId}/suspend`, { method: "PATCH", body: JSON.stringify({ suspendedUntil }) });
+}
+
+export function createAdminAccount(data: { email: string; password: string; firstName: string; lastName: string }) {
+  return request<{ user: AuthUser }>("/admin/users/create", { method: "POST", body: JSON.stringify(data) });
+}
+
+// ---------------------------------------------------------------------------
+// AI endpoints (Sprint 13)
+// ---------------------------------------------------------------------------
+
+export interface AiMentorRecommendation {
+  mentorId: string;
+  score: number;
+  reason: string;
+}
+
+export interface AiCompatibilityScore {
+  score: number;
+  breakdown: {
+    expertiseOverlap: number;
+    goalAlignment: number;
+    timezoneMatch: boolean;
+  };
+  explanation: string;
+}
+
+export interface AiProfileQuality {
+  score: number;
+  suggestions: string[];
+}
+
+export function getMentorRecommendations() {
+  return request<{ recommendations: AiMentorRecommendation[] }>("/ai/mentor-recommendations");
+}
+
+export function getCompatibilityScore(mentorId: string) {
+  return request<AiCompatibilityScore>(`/ai/compatibility/${mentorId}`);
+}
+
+export function getGoalMentors(goalId: string) {
+  return request<{ mentors: AiMentorRecommendation[] }>(`/ai/goal-mentors/${goalId}`);
+}
+
+export function getProfileQuality() {
+  return request<AiProfileQuality>("/ai/profile-quality");
+}
+
+// ---------------------------------------------------------------------------
+// AI endpoints (Sprint 14 — Session Intelligence)
+// ---------------------------------------------------------------------------
+
+export interface AiAgendaItem {
+  item: string;
+  rationale: string;
+  estimatedMinutes: number;
+}
+
+export interface AiSessionSummary {
+  keyPoints: string[];
+  decisions: string[];
+  actionItems: string[];
+  followUpQuestions: string[];
+}
+
+export function getSessionAgenda(sessionId: string) {
+  return request<{ agenda: AiAgendaItem[] }>(`/ai/sessions/${sessionId}/agenda`);
+}
+
+export function generateSessionSummary(sessionId: string, data: { mentorNotes?: string; menteeFeedback?: string }) {
+  return request<{ summary: AiSessionSummary }>(`/ai/sessions/${sessionId}/summary`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export function extractActionItems(sessionId: string) {
+  return request<{ created: number; milestones: unknown[]; note?: string }>(`/ai/sessions/${sessionId}/action-items`, {
+    method: "POST",
+  });
+}
+
+// ---------------------------------------------------------------------------
+// AI endpoints (Sprint 15 — Goal Intelligence)
+// ---------------------------------------------------------------------------
+
+export interface AiMilestone {
+  title: string;
+  description?: string;
+  order: number;
+  suggestedWeeks: number;
+}
+
+export interface AiLearningStage {
+  stage: string;
+  focus: string;
+  resourceTypes: string[];
+  estimatedDuration: string;
+}
+
+export interface AiPrediction {
+  likelihood: number;
+  predictedDate: string | null;
+  trajectory: "completed" | "on-track" | "at-risk" | "off-track";
+  progress: number;
+  completedSessions: number;
+}
+
+export interface AiResource {
+  topic: string;
+  resourceType: string;
+  searchQuery: string;
+  rationale: string;
+}
+
+export interface AiInsights {
+  highlights: string[];
+  stalledAreas: string[];
+  recommendations: string[];
+  sessionFrequency: string;
+}
+
+export function generateMicroMilestones(data: { title: string; description?: string }) {
+  return request<{ milestones: AiMilestone[] }>("/ai/goals/micro-milestones", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export function getLearningPath(goalId: string) {
+  return request<{ path: AiLearningStage[] }>(`/ai/goals/${goalId}/learning-path`);
+}
+
+export function getGoalPrediction(goalId: string) {
+  return request<AiPrediction>(`/ai/goals/${goalId}/prediction`);
+}
+
+export function getGoalResources(goalId: string) {
+  return request<{ resources: AiResource[] }>(`/ai/goals/${goalId}/resources`);
+}
+
+export function getProgressInsights() {
+  return request<{ insights: AiInsights; cached: boolean }>("/ai/insights");
 }

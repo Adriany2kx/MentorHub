@@ -1637,3 +1637,10 @@ body::before {
 [data-theme="dark"] .wf-input-box:focus {
   box-shadow: 0 0 0 3px rgba(129,140,248,0.25);
 }
+
+/* Suppress browser-native password reveal button (Edge, Chrome on Windows)
+   so it doesn't duplicate alongside the custom eye toggle */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}

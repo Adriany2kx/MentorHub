@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getMentor, getMentorReviews } from "../lib/api";
-import type { MentorDetail as MentorDetailType, Review } from "../lib/api";
+import { getMentor, getMentorReviews, getCompatibilityScore } from "../lib/api";
+import type { MentorDetail as MentorDetailType, Review, AiCompatibilityScore } from "../lib/api";
+import { useAuth } from "../context/AuthContext";
 import ProgramCard from "../components/ProgramCard";
 import ReviewCard from "../components/ReviewCard";
 import StarRating from "../components/StarRating";
@@ -11,12 +12,14 @@ const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", 
 
 export default function MentorDetail() {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const [mentor, setMentor] = useState<MentorDetailType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [reviews, setReviews] = useState<Review[]>([]);
   const [avgRating, setAvgRating] = useState<number | null>(null);
   const [totalReviews, setTotalReviews] = useState(0);
+  const [compatibility, setCompatibility] = useState<AiCompatibilityScore | null>(null);
 
   function loadMentor() {
     if (!id) return;
@@ -34,9 +37,14 @@ export default function MentorDetail() {
         setTotalReviews(d.totalReviews);
       })
       .catch(() => {});
+
+    if (user?.role === "MENTEE") {
+      getCompatibilityScore(id).then(setCompatibility).catch(() => {});
+    }
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadMentor();
   }, [id]);
 
@@ -105,6 +113,23 @@ export default function MentorDetail() {
                 <p className="wf-text mb-3" style={{ color: "var(--color-ink-2)" }}>
                   {mentor.headline}
                 </p>
+              )}
+
+              {compatibility && (
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <span
+                    className="text-xs font-semibold px-2.5 py-1 rounded-full"
+                    style={{
+                      background: compatibility.score >= 70 ? "var(--color-success-bg, #d1fae5)" : compatibility.score >= 45 ? "var(--color-warn-bg, #fef3c7)" : "var(--color-error-bg, #fee2e2)",
+                      color: compatibility.score >= 70 ? "var(--color-success, #065f46)" : compatibility.score >= 45 ? "var(--color-warn, #92400e)" : "var(--color-error, #991b1b)",
+                    }}
+                  >
+                    {compatibility.score}% compatibility
+                  </span>
+                  <span className="wf-text-xs" style={{ color: "var(--color-ink-2)" }} title={`Expertise: ${compatibility.breakdown.expertiseOverlap}% · Goals: ${compatibility.breakdown.goalAlignment}% · Same timezone: ${compatibility.breakdown.timezoneMatch ? "Yes" : "No"}`}>
+                    {compatibility.explanation}
+                  </span>
+                </div>
               )}
 
               {/* Inline meta — no stat boxes */}

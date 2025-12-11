@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { getGoal, updateGoal, deleteGoal, addMilestone, toggleMilestone } from "../lib/api";
-import type { Goal, GoalStatus } from "../lib/api";
+import { getGoal, updateGoal, deleteGoal, addMilestone, toggleMilestone, getGoalMentors, getMentor, getLearningPath, getGoalPrediction, getGoalResources } from "../lib/api";
+import type { Goal, GoalStatus, AiMentorRecommendation, MentorDetail, AiLearningStage, AiPrediction, AiResource } from "../lib/api";
 import GoalProgressBar from "../components/GoalProgressBar";
 import { useToast } from "../context/ToastContext";
 import LoadingState from "../components/LoadingState";
@@ -46,6 +46,17 @@ export default function GoalDetail() {
   const [showGoalCompleted, setShowGoalCompleted] = useState(false);
   const [deleteConfirmArmed, setDeleteConfirmArmed] = useState(false);
 
+  // AI suggested mentors
+  const [goalMentors, setGoalMentors] = useState<AiMentorRecommendation[]>([]);
+  const [goalMentorDetails, setGoalMentorDetails] = useState<Record<string, MentorDetail>>({});
+
+  // Sprint 15 AI
+  const [learningPath, setLearningPath] = useState<AiLearningStage[] | null>(null);
+  const [pathLoading, setPathLoading] = useState(false);
+  const [prediction, setPrediction] = useState<AiPrediction | null>(null);
+  const [resources, setResources] = useState<AiResource[] | null>(null);
+  const [resourcesLoading, setResourcesLoading] = useState(false);
+
   useEffect(() => {
     if (!id) return;
     getGoal(id)
@@ -55,6 +66,20 @@ export default function GoalDetail() {
       })
       .catch((err) => setError(err instanceof Error ? err.message : "Goal not found"))
       .finally(() => setLoading(false));
+
+    getGoalPrediction(id).then(setPrediction).catch(() => {});
+
+    getGoalMentors(id)
+      .then(({ mentors: recs }) => {
+        setGoalMentors(recs);
+        return Promise.all(recs.map((r) => getMentor(r.mentorId).catch(() => null)));
+      })
+      .then((mentors) => {
+        const map: Record<string, MentorDetail> = {};
+        mentors.forEach((m) => { if (m) map[m.mentor.id] = m.mentor; });
+        setGoalMentorDetails(map);
+      })
+      .catch(() => {});
   }, [id]);
 
   function populateEdit(g: Goal) {
@@ -384,6 +409,210 @@ export default function GoalDetail() {
               Add
             </button>
           </form>
+        </div>
+
+        {goalMentors.length > 0 && (
+          <div className="wf-card-flush mt-5">
+            <div className="wf-card-header" style={{ justifyContent: "space-between" }}>
+              <span>Mentors Suggested for this Goal</span>
+              <Link to="/mentors" className="wf-btn-link" style={{ fontSize: 12 }}>Browse all →</Link>
+            </div>
+            <div className="divide-y" style={{ borderColor: "var(--color-border)" }}>
+              {goalMentors.map((rec) => {
+                const mentor = goalMentorDetails[rec.mentorId];
+                const name = mentor
+                  ? `${mentor.user.firstName ?? ""} ${mentor.user.lastName ?? ""}`.trim() || "Mentor"
+                  : "Loading…";
+                return (
+                  <Link
+                    key={rec.mentorId}
+                    to={`/mentors/${rec.mentorId}`}
+                    className="flex items-center justify-between px-5 py-4 transition-colors no-underline"
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-bg)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "")}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="wf-text font-medium">{name}</p>
+                      {mentor?.expertise && mentor.expertise.length > 0 && (
+                        <p className="wf-text-xs mt-0.5" style={{ color: "var(--color-ink-3)" }}>
+                          {mentor.expertise.slice(0, 3).join(" · ")}
+                        </p>
+                      )}
+                      <p className="wf-text-xs mt-1" style={{ color: "var(--color-ink-2)" }}>{rec.reason}</p>
+                    </div>
+                    <div className="flex items-center gap-3 ml-4 shrink-0">
+                      <span
+                        className="text-xs font-semibold px-2.5 py-1 rounded-full"
+                        style={{
+                          background: rec.score >= 70 ? "var(--color-success-bg, #d1fae5)" : "var(--color-warn-bg, #fef3c7)",
+                          color: rec.score >= 70 ? "var(--color-success, #065f46)" : "var(--color-warn, #92400e)",
+                        }}
+                      >
+                        {rec.score}% match
+                      </span>
+                      <span style={{ color: "var(--color-ink-3)" }}>›</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Prediction card */}
+        {prediction && prediction.trajectory !== "completed" && (
+          <div className="wf-card-flush mt-5">
+            <div className="wf-card-header">Achievement Prediction</div>
+            <div className="p-5 flex items-center gap-5 flex-wrap">
+              <div className="text-center">
+                <div
+                  className="text-3xl font-bold"
+                  style={{
+                    color: prediction.likelihood >= 65 ? "var(--color-success, #10b981)"
+                      : prediction.likelihood >= 35 ? "var(--color-warn, #f59e0b)"
+                      : "var(--color-error, #ef4444)",
+                  }}
+                >
+                  {prediction.likelihood}%
+                </div>
+                <div className="wf-text-xs mt-1" style={{ color: "var(--color-ink-3)" }}>likelihood</div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span
+                    className="wf-text-xs font-semibold px-2 py-0.5 rounded-full capitalize"
+                    style={{
+                      background: prediction.trajectory === "on-track" ? "var(--color-success-bg, #d1fae5)"
+                        : prediction.trajectory === "at-risk" ? "var(--color-warn-bg, #fef3c7)"
+                        : "var(--color-error-bg, #fee2e2)",
+                      color: prediction.trajectory === "on-track" ? "var(--color-success, #065f46)"
+                        : prediction.trajectory === "at-risk" ? "var(--color-warn, #92400e)"
+                        : "var(--color-error, #991b1b)",
+                    }}
+                  >
+                    {prediction.trajectory.replace("-", " ")}
+                  </span>
+                </div>
+                {prediction.predictedDate && (
+                  <p className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>
+                    Estimated completion: <strong>{new Date(prediction.predictedDate).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}</strong>
+                  </p>
+                )}
+                <p className="wf-text-xs mt-0.5" style={{ color: "var(--color-ink-3)" }}>
+                  Based on {prediction.completedSessions} session{prediction.completedSessions !== 1 ? "s" : ""} and {prediction.progress}% progress
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Learning Path */}
+        <div className="wf-card-flush mt-5">
+          <div className="wf-card-header" style={{ justifyContent: "space-between" }}>
+            <span>Learning Path</span>
+            {!learningPath && (
+              <button
+                onClick={() => {
+                  if (!id) return;
+                  setPathLoading(true);
+                  getLearningPath(id).then((d) => setLearningPath(d.path)).catch(() => {}).finally(() => setPathLoading(false));
+                }}
+                disabled={pathLoading}
+                className="wf-btn wf-btn-secondary"
+                style={{ fontSize: 12, padding: "4px 12px" }}
+              >
+                {pathLoading ? "Generating…" : "✦ Generate with AI"}
+              </button>
+            )}
+          </div>
+          {!learningPath && !pathLoading && (
+            <div className="p-5">
+              <p className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>
+                Get an ordered learning path from your current skills to your target role.
+              </p>
+            </div>
+          )}
+          {pathLoading && <div className="p-5 wf-text-sm" style={{ color: "var(--color-ink-3)" }}>Building your learning path…</div>}
+          {learningPath && (
+            <div className="p-5 space-y-4">
+              {learningPath.map((stage, i) => (
+                <div key={i} className="flex gap-4">
+                  <div className="flex flex-col items-center">
+                    <div
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                      style={{ background: "var(--color-blue)", color: "#fff" }}
+                    >
+                      {i + 1}
+                    </div>
+                    {i < learningPath.length - 1 && (
+                      <div className="flex-1 w-px my-1" style={{ background: "var(--color-border)" }} />
+                    )}
+                  </div>
+                  <div className="flex-1 pb-4">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="wf-text font-semibold">{stage.stage}</p>
+                      <span className="wf-text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--color-bg)", border: "1px solid var(--color-border)", color: "var(--color-ink-3)" }}>
+                        {stage.estimatedDuration}
+                      </span>
+                    </div>
+                    <p className="wf-text-sm mt-1" style={{ color: "var(--color-ink-2)" }}>{stage.focus}</p>
+                    {stage.resourceTypes.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {stage.resourceTypes.map((rt) => (
+                          <span key={rt} className="wf-tag">{rt}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Resource Recommendations */}
+        <div className="wf-card-flush mt-5">
+          <div className="wf-card-header" style={{ justifyContent: "space-between" }}>
+            <span>Suggested Resources</span>
+            {!resources && (
+              <button
+                onClick={() => {
+                  if (!id) return;
+                  setResourcesLoading(true);
+                  getGoalResources(id).then((d) => setResources(d.resources)).catch(() => {}).finally(() => setResourcesLoading(false));
+                }}
+                disabled={resourcesLoading}
+                className="wf-btn wf-btn-secondary"
+                style={{ fontSize: 12, padding: "4px 12px" }}
+              >
+                {resourcesLoading ? "Finding…" : "✦ Suggest with AI"}
+              </button>
+            )}
+          </div>
+          {!resources && !resourcesLoading && (
+            <div className="p-5">
+              <p className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>
+                Get contextual resource suggestions based on where you are in this goal.
+              </p>
+            </div>
+          )}
+          {resourcesLoading && <div className="p-5 wf-text-sm" style={{ color: "var(--color-ink-3)" }}>Finding relevant resources…</div>}
+          {resources && (
+            <div className="divide-y" style={{ borderColor: "var(--color-border)" }}>
+              {resources.map((r, i) => (
+                <div key={i} className="px-5 py-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="wf-tag">{r.resourceType}</span>
+                    <p className="wf-text-sm font-medium">{r.topic}</p>
+                  </div>
+                  <p className="wf-text-xs" style={{ color: "var(--color-ink-2)" }}>{r.rationale}</p>
+                  <p className="wf-text-xs mt-1 font-mono" style={{ color: "var(--color-ink-3)" }}>
+                    Search: "{r.searchQuery}"
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

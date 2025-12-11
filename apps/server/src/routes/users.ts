@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
+import { logger } from "../lib/logger.js";
 import { requireAuth } from "../middleware/auth.js";
 import { uploadAvatar, getAvatarUrl } from "../middleware/upload.js";
 import fs from "fs";
@@ -94,7 +95,7 @@ router.post("/me/avatar", requireAuth, (req, res) => {
         res.status(400).json({ error: "File size must be less than 5MB" });
         return;
       }
-      console.error("Upload error:", err);
+      logger.error({ err }, "Avatar upload error");
       res.status(500).json({ error: "Failed to upload avatar" });
       return;
     }

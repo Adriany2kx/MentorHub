@@ -33,9 +33,11 @@ function AvatarWithFallback({ url, name }: { url?: string | null; name: string }
 
 interface MentorCardProps {
   mentor: MentorListItem;
+  compatibilityScore?: number;
+  matchReason?: string;
 }
 
-export default function MentorCard({ mentor }: MentorCardProps) {
+export default function MentorCard({ mentor, compatibilityScore, matchReason }: MentorCardProps) {
   const navigate = useNavigate();
   const displayName =
     mentor.user.firstName || mentor.user.lastName
@@ -91,6 +93,25 @@ export default function MentorCard({ mentor }: MentorCardProps) {
           ))}
           {mentor.expertise.length > 4 && (
             <span className="wf-text-xs" style={{ color: "var(--color-ink-3)" }}>+{mentor.expertise.length - 4}</span>
+          )}
+        </div>
+      )}
+
+      {compatibilityScore !== undefined && (
+        <div className="mt-4 flex items-center gap-2">
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+            style={{
+              background: compatibilityScore >= 70 ? "var(--color-success-bg, #d1fae5)" : compatibilityScore >= 45 ? "var(--color-warn-bg, #fef3c7)" : "var(--color-error-bg, #fee2e2)",
+              color: compatibilityScore >= 70 ? "var(--color-success, #065f46)" : compatibilityScore >= 45 ? "var(--color-warn, #92400e)" : "var(--color-error, #991b1b)",
+            }}
+            title={matchReason}
+          >
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true"><circle cx="5" cy="5" r="5" /></svg>
+            {compatibilityScore}% match
+          </div>
+          {matchReason && (
+            <span className="wf-text-xs truncate" style={{ color: "var(--color-ink-3)" }}>{matchReason}</span>
           )}
         </div>
       )}

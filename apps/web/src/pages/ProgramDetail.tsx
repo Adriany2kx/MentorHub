@@ -23,6 +23,7 @@ export default function ProgramDetail() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadProgram();
   }, [id]);
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { listAdminReports, updateAdminReport } from "../lib/api";
-import type { Report } from "../lib/api";
+import type { Report, ReportStatus } from "../lib/api";
 
 const STATUS_BADGE: Record<string, string> = {
   PENDING: "wf-badge-warn",
@@ -30,7 +30,7 @@ export default function AdminReports() {
 
   const load = useCallback(() => {
     setLoading(true);
-    listAdminReports(page, statusFilter || undefined)
+    listAdminReports({ page, status: statusFilter || undefined })
       .then((d) => {
         setReports(d.reports);
         setTotalPages(d.pagination.totalPages);
@@ -51,18 +51,12 @@ export default function AdminReports() {
   async function handleStatusChange(reportId: string, newStatus: string) {
     setUpdating(reportId);
     try {
-      await updateAdminReport(reportId, {
-        status: newStatus as "PENDING" | "REVIEWED" | "RESOLVED" | "DISMISSED",
-        adminNotes: editingNotes[reportId],
-      });
+      const status = newStatus as ReportStatus;
+      await updateAdminReport(reportId, { status, adminNotes: editingNotes[reportId] });
       setReports((prev) =>
         prev.map((r) =>
           r.id === reportId
-            ? {
-                ...r,
-                status: newStatus as "PENDING" | "REVIEWED" | "RESOLVED" | "DISMISSED",
-                adminNotes: editingNotes[reportId] || r.adminNotes,
-              }
+            ? { ...r, status, adminNotes: editingNotes[reportId] ?? r.adminNotes }
             : r
         )
       );
@@ -136,9 +130,9 @@ export default function AdminReports() {
                   <div className="flex items-start justify-between gap-4 mb-3">
                     <div className="flex-1 min-w-0">
                       <p className="wf-text font-semibold">
-                        {report.reporter.firstName} {report.reporter.lastName}{" "}
+                        {report.reporter?.firstName ?? ""} {report.reporter?.lastName ?? ""}{" "}
                         <span style={{ color: "var(--color-ink-3)" }}>reported</span>{" "}
-                        {report.reported.firstName} {report.reported.lastName}
+                        {report.reported?.firstName ?? ""} {report.reported?.lastName ?? ""}
                       </p>
                       <p className="wf-text-sm" style={{ color: "var(--color-ink-3)" }}>
                         {REASON_LABEL[report.reason]} • {new Date(report.createdAt).toLocaleDateString()}
@@ -157,15 +151,15 @@ export default function AdminReports() {
                   </div>
 
                   {isExpanded && (
-                    <div className="mt-4 p-4 rounded border space-y-3" style={{ background: "var(--color-bg)", borderColor: "var(--color-border)" }}>
+                    <div className="mt-4 p-6 rounded border space-y-4" style={{ background: "var(--color-bg)", borderColor: "var(--color-border)" }}>
                       <div>
                         <p className="wf-text-sm font-semibold mb-1">Reporter</p>
-                        <p className="wf-text-sm">{report.reporter.email}</p>
+                        <p className="wf-text-sm">{report.reporter?.email ?? "—"}</p>
                       </div>
 
                       <div>
                         <p className="wf-text-sm font-semibold mb-1">Reported User</p>
-                        <p className="wf-text-sm">{report.reported.email}</p>
+                        <p className="wf-text-sm">{report.reported?.email ?? "—"}</p>
                       </div>
 
                       {report.message && (

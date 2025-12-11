@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
+import { hashPassword } from "../lib/hash.js";
 import { requireAuth } from "../middleware/auth.js";
 import { requireAdmin } from "../middleware/auth.js";
 
@@ -22,6 +23,7 @@ router.get("/stats", async (_req, res) => {
     activeSessions,
     pendingMentors,
     totalRevenue,
+    pendingReports,
   ] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({ where: { role: "MENTOR" } }),
@@ -33,6 +35,7 @@ router.get("/stats", async (_req, res) => {
     prisma.mentoringSession.count({ where: { status: "SCHEDULED" } }),
     prisma.mentorProfile.count({ where: { isApproved: false } }),
     prisma.booking.aggregate({ _sum: { totalPrice: true }, where: { status: "COMPLETED" } }),
+    prisma.report.count({ where: { status: "PENDING" } }),
   ]);
 
   return res.json({
@@ -46,6 +49,7 @@ router.get("/stats", async (_req, res) => {
       totalSessions,
       activeSessions,
       pendingMentors,
+      pendingReports,
       totalRevenue: totalRevenue._sum.totalPrice ? parseFloat(String(totalRevenue._sum.totalPrice)) : 0,
     },
   });
@@ -116,6 +120,40 @@ router.get("/users/:id", async (req, res) => {
   return res.json({ user });
 });
 
+// POST /api/admin/users/create — create a new admin account
+router.post("/users/create", async (req, res) => {
+  const parsed = z.object({
+    email: z.string().email(),
+    password: z.string().min(6),
+    firstName: z.string().min(1),
+    lastName: z.string().min(1),
+  }).safeParse(req.body);
+
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.errors[0].message });
+
+  const { email, password, firstName, lastName } = parsed.data;
+
+  // Check if email already exists
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) return res.status(409).json({ error: "Email already registered" });
+
+  // Hash password and create admin user
+  const passwordHash = await hashPassword(password);
+  const user = await prisma.user.create({
+    data: {
+      email,
+      passwordHash,
+      firstName,
+      lastName,
+      role: "ADMIN",
+      isVerified: true,
+    },
+    select: { id: true, email: true, firstName: true, lastName: true, role: true, createdAt: true },
+  });
+
+  return res.status(201).json({ user });
+});
+
 // PATCH /api/admin/users/:id — update user role
 router.patch("/users/:id", async (req, res) => {
   const parsed = z.object({
@@ -135,6 +173,25 @@ router.patch("/users/:id", async (req, res) => {
   });
 
   return res.json({ user: updated });
+});
+
+// GET /api/admin/mentors — all mentor profiles with optional filter
+router.get("/mentors", async (req, res) => {
+  const filter = req.query.filter as string | undefined; // "pending" | "approved" | undefined = all
+  const where = filter === "pending" ? { isApproved: false }
+    : filter === "approved" ? { isApproved: true }
+    : {};
+
+  const mentors = await prisma.mentorProfile.findMany({
+    where,
+    orderBy: { createdAt: "desc" },
+    include: {
+      user: { select: { id: true, email: true, firstName: true, lastName: true, avatarUrl: true } },
+      _count: { select: { programs: true, reviews: true } },
+    },
+  });
+
+  return res.json({ mentors });
 });
 
 // GET /api/admin/mentors/pending — unapproved mentor profiles
@@ -201,6 +258,32 @@ router.get("/programs", async (req, res) => {
   return res.json({ programs, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } });
 });
 
+// PATCH /api/admin/programs/:id — toggle publish status
+router.patch("/programs/:id", async (req, res) => {
+  const parsed = z.object({ isPublished: z.boolean() }).safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "Invalid data" });
+
+  const program = await prisma.program.findUnique({ where: { id: req.params.id } });
+  if (!program) return res.status(404).json({ error: "Program not found" });
+
+  const updated = await prisma.program.update({
+    where: { id: req.params.id },
+    data: { isPublished: parsed.data.isPublished },
+    include: { mentor: { select: { user: { select: { firstName: true, lastName: true, email: true } } } }, _count: { select: { bookings: true } } },
+  });
+
+  return res.json({ program: updated });
+});
+
+// DELETE /api/admin/programs/:id — remove a program
+router.delete("/programs/:id", async (req, res) => {
+  const program = await prisma.program.findUnique({ where: { id: req.params.id } });
+  if (!program) return res.status(404).json({ error: "Program not found" });
+
+  await prisma.program.delete({ where: { id: req.params.id } });
+  return res.json({ message: "Program deleted" });
+});
+
 // PATCH /api/admin/users/:id/ban — toggle ban status
 router.patch("/users/:id/ban", async (req, res) => {
   const parsed = z.object({ isBanned: z.boolean() }).safeParse(req.body);
@@ -235,6 +318,9 @@ router.patch("/users/:id/suspend", async (req, res) => {
   return res.json({ user: updated });
 });
 
+const REPORT_STATUSES = ["PENDING", "REVIEWED", "RESOLVED", "DISMISSED"] as const;
+type ReportStatus = (typeof REPORT_STATUSES)[number];
+
 // GET /api/admin/reports — paginated reports list
 router.get("/reports", async (req, res) => {
   const page = Math.max(1, parseInt(String(req.query.page ?? "1")));
@@ -242,7 +328,8 @@ router.get("/reports", async (req, res) => {
   const skip = (page - 1) * limit;
   const status = req.query.status as string | undefined;
 
-  const where = status ? { status: status as any } : {};
+  const validStatus = REPORT_STATUSES.includes(status as ReportStatus) ? (status as ReportStatus) : undefined;
+  const where = validStatus ? { status: validStatus } : {};
 
   const [reports, total] = await Promise.all([
     prisma.report.findMany({

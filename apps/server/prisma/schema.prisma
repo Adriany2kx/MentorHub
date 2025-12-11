@@ -152,16 +152,24 @@ model Availability {
 }
 
 model MenteeProfile {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  goals       String?
-  interests   String[]
-  currentRole String?
-  targetRole  String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  goals          String?
+  interests      String[]
+  currentRole    String?
+  targetRole     String?
+  // AI enrichment fields (Sprint 13.5)
+  skills          Json?    // SkillEntry[]: [{ skill: string, level: "none"|"beginner"|"intermediate"|"advanced"|"expert" }]
+  targetIndustry  String?
+  currentBlocker  String?
+  learningStyle   String?  // "structured" | "exploratory" | "project-based"
+  // AI insights cache (Sprint 15)
+  insightsCache   Json?    // { highlights, stalledAreas, recommendations, sessionFrequency }
+  insightsCachedAt DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("mentee_profiles")
 }
@@ -189,6 +197,8 @@ model Booking {
   @@index([mentorId])
   @@index([programId])
   @@index([status])
+  @@index([menteeId, status])
+  @@index([mentorId, status])
   @@map("bookings")
 }
 
@@ -202,6 +212,7 @@ model MentoringSession {
   mentorNotes    String?
   menteeFeedback String?
   rating         Int?          // 1-5
+  aiSummary      Json?         // { keyPoints, decisions, actionItems, followUpQuestions }
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
@@ -209,6 +220,7 @@ model MentoringSession {
 
   @@index([bookingId])
   @@index([scheduledAt])
+  @@index([bookingId, status])
   @@map("mentoring_sessions")
 }
 
@@ -323,6 +335,7 @@ model Goal {
 
   @@index([menteeId])
   @@index([bookingId])
+  @@index([menteeId, status])
   @@map("goals")
 }
 

@@ -17,6 +17,7 @@ export default function AdminPayments() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<PaymentStatus | "">("");
 
   useEffect(() => {
     setLoading(true);
@@ -44,6 +45,22 @@ export default function AdminPayments() {
     <div className="wf-page">
       <div className="wf-page-header flex items-center justify-between">
         <h1 className="wf-h1">Payments</h1>
+      </div>
+
+      {/* Status filter */}
+      <div className="mb-5">
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value as PaymentStatus | "")}
+          className="wf-input-box"
+          style={{ width: "auto" }}
+        >
+          <option value="">All Statuses</option>
+          <option value="PENDING">Pending</option>
+          <option value="COMPLETED">Completed</option>
+          <option value="FAILED">Failed</option>
+          <option value="REFUNDED">Refunded</option>
+        </select>
       </div>
 
       {/* Revenue stat cards */}
@@ -93,7 +110,7 @@ export default function AdminPayments() {
                   </td>
                 </tr>
               ) : (
-                payments.map((p) => {
+                payments.filter((p) => !statusFilter || p.status === statusFilter).map((p) => {
                   const menteeName = p.booking.mentee
                     ? [p.booking.mentee.firstName, p.booking.mentee.lastName].filter(Boolean).join(" ") ||
                       p.booking.mentee.email

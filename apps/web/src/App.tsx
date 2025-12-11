@@ -40,12 +40,13 @@ const AdminMentors = lazy(() => import("./pages/AdminMentors"));
 const AdminPrograms = lazy(() => import("./pages/AdminPrograms"));
 const AdminPayments = lazy(() => import("./pages/AdminPayments"));
 const AdminReports = lazy(() => import("./pages/AdminReports"));
+const AdminCreateAccount = lazy(() => import("./pages/AdminCreateAccount"));
 const PaymentCheckout = lazy(() => import("./pages/PaymentCheckout"));
 const PaymentHistory = lazy(() => import("./pages/PaymentHistory"));
+const MentorPayments = lazy(() => import("./pages/MentorPayments"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
-const LoadingDemo = lazy(() => import("./pages/LoadingDemo"));
 
 function RouteFallback() {
   return <LoadingState title="Loading page" message="Building the next screen..." lines={4} />;
@@ -93,7 +94,6 @@ function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
-          <Route path="/loading-demo" element={<LoadingDemo />} />
 
           {/* Guest only */}
           <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
@@ -121,11 +121,13 @@ function App() {
           <Route path="/resources" element={<ProtectedRoute><Resources /></ProtectedRoute>} />
           <Route path="/checkout/:bookingId" element={<ProtectedRoute><PaymentCheckout /></ProtectedRoute>} />
           <Route path="/payments" element={<ProtectedRoute><PaymentHistory /></ProtectedRoute>} />
+          <Route path="/mentor/payments" element={<ProtectedRoute><MentorPayments /></ProtectedRoute>} />
 
           {/* Admin routes */}
           <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
             <Route index element={<AdminDashboard />} />
             <Route path="users" element={<AdminUsers />} />
+            <Route path="users/create" element={<AdminCreateAccount />} />
             <Route path="mentors" element={<AdminMentors />} />
             <Route path="programs" element={<AdminPrograms />} />
             <Route path="payments" element={<AdminPayments />} />

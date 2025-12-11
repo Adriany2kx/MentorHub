@@ -24,6 +24,7 @@ export function AdminLayout() {
     { label: "Mentors", to: "/admin/mentors" },
     { label: "Programs", to: "/admin/programs" },
     { label: "Payments", to: "/admin/payments" },
+    { label: "Reports", to: "/admin/reports" },
   ];
 
   return (
@@ -157,15 +158,29 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Pending mentors banner */}
-      {stats && stats.pendingMentors > 0 && (
-        <div className="border border-warn bg-paper-2 px-4 py-3 mb-6 flex items-center justify-between">
-          <p className="wf-text-sm" style={{ color: "var(--color-warn)" }}>
-            {stats.pendingMentors} mentor{stats.pendingMentors !== 1 ? "s" : ""} awaiting approval
-          </p>
-          <Link to="/admin/mentors" className="wf-btn wf-btn-secondary" style={{ fontSize: 9 }}>
-            Review →
-          </Link>
+      {/* Alert banners */}
+      {stats && (stats.pendingMentors > 0 || stats.pendingReports > 0) && (
+        <div className="space-y-3 mb-6">
+          {stats.pendingMentors > 0 && (
+            <div className="px-4 py-3 flex items-center justify-between rounded-lg border" style={{ borderColor: "var(--color-warn, #f59e0b)", background: "var(--color-warn-bg, #fef3c7)" }}>
+              <p className="wf-text-sm font-medium" style={{ color: "var(--color-warn, #92400e)" }}>
+                {stats.pendingMentors} mentor application{stats.pendingMentors !== 1 ? "s" : ""} awaiting approval
+              </p>
+              <Link to="/admin/mentors" className="wf-btn wf-btn-secondary" style={{ fontSize: 12 }}>
+                Review →
+              </Link>
+            </div>
+          )}
+          {stats.pendingReports > 0 && (
+            <div className="px-4 py-3 flex items-center justify-between rounded-lg border" style={{ borderColor: "var(--color-error, #ef4444)", background: "var(--color-error-bg, #fee2e2)" }}>
+              <p className="wf-text-sm font-medium" style={{ color: "var(--color-error, #991b1b)" }}>
+                {stats.pendingReports} report{stats.pendingReports !== 1 ? "s" : ""} pending review
+              </p>
+              <Link to="/admin/reports" className="wf-btn wf-btn-secondary" style={{ fontSize: 12 }}>
+                Review →
+              </Link>
+            </div>
+          )}
         </div>
       )}
 

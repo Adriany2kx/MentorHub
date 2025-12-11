@@ -1,15 +1,10 @@
 import { Router } from "express";
-import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth } from "../middleware/auth.js";
+import { requireId } from "../lib/validate.js";
+import { completeSessionSchema } from "../schemas/session.schema.js";
 
 const router = Router();
-
-const completeSessionSchema = z.object({
-  mentorNotes: z.string().max(2000).optional(),
-  menteeFeedback: z.string().max(2000).optional(),
-  rating: z.number().int().min(1).max(5).optional(),
-});
 
 // Helper to check session ownership
 async function getOwnedSession(sessionId: string, userId: string, userRole: string) {
@@ -82,11 +77,13 @@ router.get("/", requireAuth, async (req, res) => {
 
 // GET /api/sessions/:id — get session detail
 router.get("/:id", requireAuth, async (req, res) => {
-  const owned = await getOwnedSession(req.params.id, req.userId!, req.userRole!);
+  if (!requireId(req.params.id, res)) return;
+  const id = req.params.id as string;
+  const owned = await getOwnedSession(id, req.userId!, req.userRole!);
   if (!owned) return res.status(404).json({ error: "Session not found" });
 
   const full = await prisma.mentoringSession.findUnique({
-    where: { id: req.params.id },
+    where: { id },
     include: {
       booking: {
         include: {
@@ -114,7 +111,7 @@ router.patch("/:id/complete", requireAuth, async (req, res) => {
     return res.status(400).json({ error: parsed.error.errors[0].message });
   }
 
-  const owned = await getOwnedSession(req.params.id, req.userId!, req.userRole!);
+  const owned = await getOwnedSession(req.params.id as string, req.userId!, req.userRole!);
   if (!owned) return res.status(404).json({ error: "Session not found" });
 
   const { session, isMentee, isMentor } = owned;
@@ -162,7 +159,7 @@ router.patch("/:id/complete", requireAuth, async (req, res) => {
 
 // PATCH /api/sessions/:id/cancel — cancel a session
 router.patch("/:id/cancel", requireAuth, async (req, res) => {
-  const owned = await getOwnedSession(req.params.id, req.userId!, req.userRole!);
+  const owned = await getOwnedSession(req.params.id as string, req.userId!, req.userRole!);
   if (!owned) return res.status(404).json({ error: "Session not found" });
 
   const { session } = owned;

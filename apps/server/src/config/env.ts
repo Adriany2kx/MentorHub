@@ -10,6 +10,7 @@ export const env = {
   DATABASE_URL: required("DATABASE_URL"),
   NODE_ENV: process.env.NODE_ENV ?? "development",
   PORT: parseInt(process.env.PORT ?? "3000", 10),
+  // Production: FRONTEND_URL must be explicitly set (not localhost). Controls CORS and cookie SameSite policy.
   FRONTEND_URL: process.env.FRONTEND_URL ?? "http://localhost:5173",
 
   SESSION_SECRET: required("SESSION_SECRET"),
@@ -32,4 +33,15 @@ export const env = {
 
   EMAIL_VERIFICATION_TTL_MS: 24 * 60 * 60 * 1000, // 24 hours
   PASSWORD_RESET_TTL_MS: 60 * 60 * 1000, // 1 hour
+
+  RECAPTCHA_SECRET_KEY: process.env.RECAPTCHA_SECRET_KEY ?? "",
+
+  // AI / LLM (Google Gemini)
+  // Free tier: gemini-1.5-flash — 15 RPM, 1M tokens/day
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY ?? "",
+  AI_MODEL: process.env.AI_MODEL ?? "gemini-1.5-flash",
+  AI_MENTOR_LIST_LIMIT: parseInt(process.env.AI_MENTOR_LIST_LIMIT ?? "50", 10), // Gemini 1M ctx handles more
+  INSIGHTS_CACHE_TTL_HOURS: parseInt(process.env.INSIGHTS_CACHE_TTL_HOURS ?? "24", 10),
+  SESSION_RECOMMENDATION_WINDOW_HOURS: parseInt(process.env.SESSION_RECOMMENDATION_WINDOW_HOURS ?? "48", 10),
+  DEFAULT_PAGE_SIZE: parseInt(process.env.DEFAULT_PAGE_SIZE ?? "20", 10),
 } as const;

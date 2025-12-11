@@ -191,7 +191,7 @@ export default function Resources() {
       const objectUrl = window.URL.createObjectURL(blob);
 
       const disposition = response.headers.get("content-disposition") ?? "";
-      const match = disposition.match(/filename="?([^\"]+)"?/i);
+      const match = disposition.match(/filename="?([^"]+)"?/i);
       const filename = match?.[1] ?? resource.title;
 
       const anchor = document.createElement("a");

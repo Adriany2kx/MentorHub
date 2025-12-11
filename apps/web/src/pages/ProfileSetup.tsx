@@ -1,241 +1,539 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { updateMyProfile, createMenteeProfile } from "../lib/api";
-import { profileSetupSchema } from "../lib/validators";
+import { updateMyProfile, createMenteeProfile, updateMenteeProfile } from "../lib/api";
+import type { SkillEntry } from "../lib/api";
 import AvatarUpload from "../components/AvatarUpload";
 
-const TIMEZONES = [
-  "UTC",
-  "America/New_York",
-  "America/Chicago",
-  "America/Denver",
-  "America/Los_Angeles",
-  "Europe/London",
-  "Europe/Paris",
-  "Europe/Berlin",
-  "Asia/Tokyo",
-  "Asia/Shanghai",
-  "Asia/Singapore",
-  "Australia/Sydney",
+// ---------------------------------------------------------------------------
+// Step 1 data
+// ---------------------------------------------------------------------------
+const COMMON_ROLES = [
+  "Software Engineer", "Product Manager", "Data Scientist", "UX Designer",
+  "Engineering Manager", "Data Analyst", "Marketing Manager", "Business Analyst",
+  "DevOps Engineer", "Frontend Developer", "Backend Developer", "Full Stack Developer",
+  "Machine Learning Engineer", "Product Designer", "Startup Founder", "Consultant",
 ];
 
-const STEPS = ["Account", "Role", "Profile", "Preferences", "Complete"];
-const CURRENT_STEP = 3; // Profile step (1-indexed)
+// ---------------------------------------------------------------------------
+// Step 2 data — skill suggestions grouped by tab
+// ---------------------------------------------------------------------------
+type SkillTab = "Technical" | "Business" | "Soft Skills";
 
+const SKILL_SUGGESTIONS: Record<SkillTab, string[]> = {
+  Technical: [
+    "Python", "SQL", "JavaScript", "TypeScript", "React", "Node.js",
+    "Machine Learning", "Data Analysis", "Cloud (AWS/GCP/Azure)", "DevOps",
+    "System Design", "API Development", "Docker", "Kubernetes", "Figma",
+  ],
+  Business: [
+    "Product Strategy", "Roadmapping", "Stakeholder Management", "Data-Driven Decisions",
+    "Go-to-Market", "User Research", "OKRs / KPIs", "Agile / Scrum",
+    "Business Development", "Financial Modelling", "Project Management", "Market Analysis",
+  ],
+  "Soft Skills": [
+    "Leadership", "Public Speaking", "Negotiation", "Mentoring",
+    "Cross-functional Collaboration", "Executive Communication",
+    "Conflict Resolution", "Strategic Thinking", "Time Management",
+  ],
+};
+
+const PROFICIENCY_LEVELS: SkillEntry["level"][] = ["beginner", "intermediate", "advanced", "expert"];
+const PROFICIENCY_LABELS: Record<SkillEntry["level"], string> = {
+  none: "None", beginner: "Beginner", intermediate: "Intermediate",
+  advanced: "Advanced", expert: "Expert",
+};
+
+// ---------------------------------------------------------------------------
+// Step 3 data
+// ---------------------------------------------------------------------------
+const INDUSTRIES = [
+  "FinTech", "HealthTech", "SaaS", "EdTech", "E-commerce",
+  "Enterprise Software", "AI / ML", "Consulting", "Media", "Other",
+];
+
+const LEARNING_STYLES = [
+  { value: "structured" as const, label: "Structured", sub: "Clear syllabus, defined milestones" },
+  { value: "exploratory" as const, label: "Exploratory", sub: "Open discussion, follow curiosity" },
+  { value: "project-based" as const, label: "Project-based", sub: "Learn by doing real work together" },
+];
+
+// ---------------------------------------------------------------------------
+// Progress bar component
+// ---------------------------------------------------------------------------
+function StepBar({ step }: { step: number }) {
+  const count = 4;
+  return (
+    <div className="flex items-center gap-2 mb-8">
+      {Array.from({ length: count }, (_, i) => {
+        const num = i + 1;
+        const done = num < step;
+        const active = num === step;
+        return (
+          <div key={num} className="flex items-center flex-1">
+            <div
+              className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all shrink-0"
+              style={{
+                background: done || active ? "var(--color-blue)" : "var(--color-border)",
+                color: done || active ? "#fff" : "var(--color-ink-3)",
+              }}
+            >
+              {done ? "✓" : num}
+            </div>
+            {i < count - 1 && (
+              <div
+                className="h-px flex-1 mx-1"
+                style={{ background: num < step ? "var(--color-blue)" : "var(--color-border)" }}
+              />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main component
+// ---------------------------------------------------------------------------
 export default function ProfileSetup() {
   const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
 
+  const [step, setStep] = useState(1);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  // Step 1
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [bio, setBio] = useState("");
-  const [timezone, setTimezone] = useState("UTC");
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState("");
+  const [currentRole, setCurrentRole] = useState("");
+  const [targetRole, setTargetRole] = useState("");
+  const detectedTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const [timezone] = useState(detectedTz || "UTC");
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  // Step 2
+  const [skills, setSkills] = useState<SkillEntry[]>([]);
+  const [activeTab, setActiveTab] = useState<SkillTab>("Technical");
+  const [customSkill, setCustomSkill] = useState("");
+
+  // Step 3
+  const [targetIndustry, setTargetIndustry] = useState("");
+  const [currentBlocker, setCurrentBlocker] = useState("");
+  const [learningStyle, setLearningStyle] = useState<"structured" | "exploratory" | "project-based" | "">("");
+
+  // ---------------------------------------------------------------------------
+  // Step helpers
+  // ---------------------------------------------------------------------------
+  function toggleSkill(skillName: string) {
+    setSkills((prev) => {
+      const exists = prev.find((s) => s.skill === skillName);
+      if (exists) return prev.filter((s) => s.skill !== skillName);
+      if (prev.length >= 8) return prev; // cap at 8
+      return [...prev, { skill: skillName, level: "beginner" }];
+    });
+  }
+
+  function setLevel(skillName: string, level: SkillEntry["level"]) {
+    setSkills((prev) => prev.map((s) => s.skill === skillName ? { ...s, level } : s));
+  }
+
+  function addCustomSkill() {
+    const name = customSkill.trim();
+    if (!name || skills.find((s) => s.skill.toLowerCase() === name.toLowerCase())) return;
+    if (skills.length >= 8) return;
+    setSkills((prev) => [...prev, { skill: name, level: "beginner" }]);
+    setCustomSkill("");
+  }
+
+  // ---------------------------------------------------------------------------
+  // Save step 1 — profile basics
+  // ---------------------------------------------------------------------------
+  async function saveStep1() {
+    if (!firstName.trim()) { setError("First name is required"); return; }
+    if (!currentRole.trim() || !targetRole.trim()) { setError("Please fill in both your current and target role"); return; }
     setError("");
-
-    const result = profileSetupSchema.safeParse({ firstName, lastName, bio, timezone });
-    if (!result.success) {
-      setError(result.error.issues[0].message);
-      return;
-    }
-
-    setIsSubmitting(true);
-
+    setSaving(true);
     try {
-      // Update basic profile
-      await updateMyProfile({
-        firstName,
-        lastName,
-        bio: bio || undefined,
-        timezone,
-      });
-
-      // Create mentee profile by default
+      await updateMyProfile({ firstName: firstName.trim(), lastName: lastName.trim(), timezone });
       try {
-        await createMenteeProfile({});
+        await createMenteeProfile({ currentRole: currentRole.trim(), targetRole: targetRole.trim() });
       } catch {
-        // Ignore if mentee profile already exists
+        await updateMenteeProfile({ currentRole: currentRole.trim(), targetRole: targetRole.trim() });
       }
-
-      await refreshUser();
-      navigate("/dashboard?welcome=1");
+      setStep(2);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save profile");
+      setError(err instanceof Error ? err.message : "Failed to save");
     } finally {
-      setIsSubmitting(false);
+      setSaving(false);
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Save step 2 — skills (skip-friendly)
+  // ---------------------------------------------------------------------------
+  async function saveStep2(skip = false) {
+    setSaving(true);
+    try {
+      if (!skip && skills.length > 0) {
+        await updateMenteeProfile({ skills });
+      }
+      setStep(3);
+    } catch {
+      // non-blocking — move on anyway
+      setStep(3);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Save step 3 — focus (skip-friendly)
+  // ---------------------------------------------------------------------------
+  async function saveStep3(skip = false) {
+    setSaving(true);
+    try {
+      if (!skip) {
+        await updateMenteeProfile({
+          targetIndustry: targetIndustry || null,
+          currentBlocker: currentBlocker.trim() || null,
+          learningStyle: (learningStyle as "structured" | "exploratory" | "project-based") || null,
+        });
+      }
+      setStep(4);
+    } catch {
+      setStep(4);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Finish — go to dashboard
+  // ---------------------------------------------------------------------------
+  async function finish() {
+    setSaving(true);
+    try {
+      await refreshUser();
+      navigate("/dashboard?welcome=1");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
   return (
-    <div className="min-h-screen" style={{ background: "var(--color-bg)" }}>
-      <div className="wf-page max-w-[720px] mx-auto">
-        {/* Step indicator */}
-        <div className="mb-10">
-          <div className="flex items-start justify-between">
-            {STEPS.map((label, idx) => {
-              const stepNum = idx + 1;
-              const isComplete = stepNum < CURRENT_STEP;
-              const isCurrent = stepNum === CURRENT_STEP;
-              return (
-                <div key={label} className="flex-1 flex flex-col items-center relative">
-                  {idx < STEPS.length - 1 && (
-                    <div
-                      className="absolute top-4 left-1/2 w-full h-px"
-                      style={{ background: isComplete ? "var(--color-blue)" : "var(--color-border)" }}
-                      aria-hidden="true"
-                    />
-                  )}
-                  <div
-                    className="relative z-10 w-8 h-8 flex items-center justify-center border"
-                    style={
-                      isCurrent || isComplete
-                        ? { background: "var(--color-blue)", color: "#FFFFFF", borderColor: "var(--color-blue)" }
-                        : { background: "var(--color-bg)", color: "var(--color-ink-3)", borderColor: "var(--color-border)" }
-                    }
-                  >
-                    {isComplete ? (
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                    ) : (
-                      <span className="wf-text-sm">{stepNum}</span>
-                    )}
-                  </div>
-                  <span
-                    className="wf-eyebrow mt-2 text-center"
-                    style={{ color: isCurrent ? "var(--color-blue)" : "var(--color-ink-3)" }}
-                  >
-                    {label}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+    <div className="min-h-screen py-10 px-4" style={{ background: "var(--color-bg)" }}>
+      <div className="max-w-155 mx-auto">
+        <StepBar step={step} />
 
-        {/* Form card */}
-        <div className="wf-card-flush max-w-150 mx-auto">
-          <div className="wf-card-header">Onboarding</div>
-          <div className="p-6">
-            <h1 className="wf-h1 mb-2">Complete Your Profile</h1>
-            <p className="wf-text mb-6" style={{ color: "var(--color-ink-2)" }}>
-              Step {CURRENT_STEP} of {STEPS.length} — Tell us about yourself
-            </p>
-
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="flex justify-center pb-2">
-                <AvatarUpload
-                  currentAvatarUrl={avatarUrl || user?.avatarUrl || null}
-                  onUploadSuccess={setAvatarUrl}
-                />
+        {/* ── STEP 1 — About You ── */}
+        {step === 1 && (
+          <div className="wf-card-flush">
+            <div className="wf-card-header">About You</div>
+            <div className="p-6 space-y-5">
+              <div>
+                <h1 className="wf-h2 mb-1">Where are you going?</h1>
+                <p className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>
+                  This is the only required step — takes about 30 seconds.
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="firstName" className="wf-label">
-                    First Name *
-                  </label>
-                  <input
-                    id="firstName"
-                    type="text"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    required
-                    maxLength={50}
-                    className="wf-input"
-                  />
+                  <label className="wf-label">First name *</label>
+                  <input className="wf-input" value={firstName} onChange={(e) => setFirstName(e.target.value)} maxLength={50} placeholder="Alex" />
                 </div>
                 <div>
-                  <label htmlFor="lastName" className="wf-label">
-                    Last Name *
-                  </label>
-                  <input
-                    id="lastName"
-                    type="text"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    required
-                    maxLength={50}
-                    className="wf-input"
-                  />
+                  <label className="wf-label">Last name</label>
+                  <input className="wf-input" value={lastName} onChange={(e) => setLastName(e.target.value)} maxLength={50} placeholder="Smith" />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="bio" className="wf-label">
-                  Bio
-                </label>
-                <textarea
-                  id="bio"
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  maxLength={500}
-                  rows={4}
-                  className="wf-textarea"
-                  placeholder="Tell us about yourself..."
+                <label className="wf-label">Your current role *</label>
+                <input
+                  className="wf-input" list="current-roles"
+                  value={currentRole} onChange={(e) => setCurrentRole(e.target.value)}
+                  placeholder="e.g. Software Engineer"
                 />
-                <p className="wf-help-text">{bio.length}/500 characters</p>
+                <datalist id="current-roles">
+                  {COMMON_ROLES.map((r) => <option key={r} value={r} />)}
+                </datalist>
               </div>
 
               <div>
-                <label htmlFor="timezone" className="wf-label">
-                  Timezone
-                </label>
-                <select
-                  id="timezone"
-                  value={timezone}
-                  onChange={(e) => setTimezone(e.target.value)}
-                  className="wf-select"
-                >
-                  {TIMEZONES.map((tz) => (
-                    <option key={tz} value={tz}>
-                      {tz}
-                    </option>
-                  ))}
-                </select>
+                <label className="wf-label">Where do you want to be? *</label>
+                <input
+                  className="wf-input" list="target-roles"
+                  value={targetRole} onChange={(e) => setTargetRole(e.target.value)}
+                  placeholder="e.g. Product Manager"
+                />
+                <datalist id="target-roles">
+                  {COMMON_ROLES.map((r) => <option key={r} value={r} />)}
+                </datalist>
+                <p className="wf-help-text mt-1">This is the core of your mentor matching</p>
               </div>
 
-              {error && (
-                <p className="wf-error-text" role="alert">
-                  {error}
+              <div className="flex items-center gap-2 p-3 rounded-lg" style={{ background: "var(--color-bg)", border: "1px solid var(--color-border)" }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: "var(--color-ink-3)", flexShrink: 0 }}>
+                  <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <p className="wf-text-xs" style={{ color: "var(--color-ink-2)" }}>
+                  Timezone auto-detected as <strong>{timezone}</strong> — you can change this in profile settings later.
                 </p>
+              </div>
+
+              {error && <p className="wf-error-text" role="alert">{error}</p>}
+
+              <div className="pt-4" style={{ borderTop: "1px solid var(--color-border)" }}>
+                <button onClick={saveStep1} disabled={saving} className="wf-btn wf-btn-primary w-full">
+                  {saving ? "Saving…" : "Continue →"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── STEP 2 — Skills ── */}
+        {step === 2 && (
+          <div className="wf-card-flush">
+            <div className="wf-card-header" style={{ justifyContent: "space-between" }}>
+              <span>Your Skills</span>
+              <span className="wf-text-xs" style={{ color: "var(--color-ink-3)" }}>{skills.length}/8 selected</span>
+            </div>
+            <div className="p-6 space-y-5">
+              <div>
+                <h1 className="wf-h2 mb-1">What skills do you already have?</h1>
+                <p className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>
+                  Pick up to 8. Rate each one — this powers your mentor recommendations.
+                </p>
+              </div>
+
+              {/* Tab selector */}
+              <div className="flex gap-1 p-1 rounded-lg" style={{ background: "var(--color-bg)", border: "1px solid var(--color-border)" }}>
+                {(Object.keys(SKILL_SUGGESTIONS) as SkillTab[]).map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className="flex-1 py-1.5 rounded-md text-sm font-medium transition-all"
+                    style={{
+                      background: activeTab === tab ? "var(--color-blue)" : "transparent",
+                      color: activeTab === tab ? "#fff" : "var(--color-ink-2)",
+                    }}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+
+              {/* Skill tag cloud */}
+              <div className="flex flex-wrap gap-2">
+                {SKILL_SUGGESTIONS[activeTab].map((skillName) => {
+                  const selected = skills.find((s) => s.skill === skillName);
+                  return (
+                    <button
+                      key={skillName}
+                      onClick={() => toggleSkill(skillName)}
+                      className="px-3 py-1.5 rounded-full text-sm font-medium transition-all border"
+                      style={{
+                        background: selected ? "var(--color-blue)" : "transparent",
+                        color: selected ? "#fff" : "var(--color-ink)",
+                        borderColor: selected ? "var(--color-blue)" : "var(--color-border)",
+                        opacity: !selected && skills.length >= 8 ? 0.4 : 1,
+                        cursor: !selected && skills.length >= 8 ? "not-allowed" : "pointer",
+                      }}
+                    >
+                      {skillName}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Custom skill input */}
+              <div className="flex gap-2">
+                <input
+                  className="wf-input flex-1"
+                  value={customSkill}
+                  onChange={(e) => setCustomSkill(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCustomSkill())}
+                  placeholder="Add a skill not listed…"
+                  maxLength={60}
+                  disabled={skills.length >= 8}
+                />
+                <button onClick={addCustomSkill} disabled={!customSkill.trim() || skills.length >= 8} className="wf-btn wf-btn-secondary">
+                  Add
+                </button>
+              </div>
+
+              {/* Proficiency ratings for selected skills */}
+              {skills.length > 0 && (
+                <div className="space-y-3 pt-2" style={{ borderTop: "1px solid var(--color-border)" }}>
+                  <p className="wf-text-sm font-medium">Rate your level for each selected skill:</p>
+                  {skills.map((s) => (
+                    <div key={s.skill} className="flex items-center gap-3 flex-wrap">
+                      <span className="wf-text-sm font-medium w-36 shrink-0 truncate">{s.skill}</span>
+                      <div className="flex gap-1 flex-wrap">
+                        {PROFICIENCY_LEVELS.map((lvl) => (
+                          <button
+                            key={lvl}
+                            onClick={() => setLevel(s.skill, lvl)}
+                            className="px-2.5 py-1 rounded-full text-xs font-medium transition-all border"
+                            style={{
+                              background: s.level === lvl ? "var(--color-blue)" : "transparent",
+                              color: s.level === lvl ? "#fff" : "var(--color-ink-2)",
+                              borderColor: s.level === lvl ? "var(--color-blue)" : "var(--color-border)",
+                            }}
+                          >
+                            {PROFICIENCY_LABELS[lvl]}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
 
               <div className="flex items-center justify-between pt-4" style={{ borderTop: "1px solid var(--color-border)" }}>
-                <button
-                  type="button"
-                  onClick={() => navigate(-1)}
-                  className="wf-btn wf-btn-secondary"
-                >
-                  Back
+                <button onClick={() => saveStep2(true)} disabled={saving} className="wf-btn wf-btn-secondary">
+                  Skip for now
                 </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="wf-btn wf-btn-primary"
-                >
-                  {isSubmitting ? "Saving..." : "Continue"}
+                <button onClick={() => saveStep2(false)} disabled={saving} className="wf-btn wf-btn-primary">
+                  {saving ? "Saving…" : skills.length > 0 ? `Save ${skills.length} skill${skills.length > 1 ? "s" : ""} →` : "Continue →"}
                 </button>
               </div>
-            </form>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* ── STEP 3 — Focus ── */}
+        {step === 3 && (
+          <div className="wf-card-flush">
+            <div className="wf-card-header">Your Focus</div>
+            <div className="p-6 space-y-6">
+              <div>
+                <h1 className="wf-h2 mb-1">Tell us a bit more</h1>
+                <p className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>
+                  Two quick questions. Both are optional but make a big difference.
+                </p>
+              </div>
+
+              {/* Target industry */}
+              <div>
+                <label className="wf-label mb-2 block">Target industry</label>
+                <div className="flex flex-wrap gap-2">
+                  {INDUSTRIES.map((ind) => (
+                    <button
+                      key={ind}
+                      onClick={() => setTargetIndustry(targetIndustry === ind ? "" : ind)}
+                      className="px-3 py-1.5 rounded-full text-sm font-medium transition-all border"
+                      style={{
+                        background: targetIndustry === ind ? "var(--color-blue)" : "transparent",
+                        color: targetIndustry === ind ? "#fff" : "var(--color-ink)",
+                        borderColor: targetIndustry === ind ? "var(--color-blue)" : "var(--color-border)",
+                      }}
+                    >
+                      {ind}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Current blocker */}
+              <div>
+                <label className="wf-label">What's your biggest challenge right now?</label>
+                <p className="wf-help-text mb-2">This is used to generate your session agendas</p>
+                <textarea
+                  className="wf-textarea"
+                  rows={3}
+                  maxLength={300}
+                  value={currentBlocker}
+                  onChange={(e) => setCurrentBlocker(e.target.value)}
+                  placeholder="e.g. I can't get engineering buy-in for my product ideas"
+                />
+                <p className="wf-help-text">{currentBlocker.length}/300</p>
+              </div>
+
+              {/* Learning style */}
+              <div>
+                <label className="wf-label mb-2 block">How do you learn best?</label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {LEARNING_STYLES.map(({ value, label, sub }) => (
+                    <button
+                      key={value}
+                      onClick={() => setLearningStyle(learningStyle === value ? "" : value)}
+                      className="p-3 rounded-lg text-left transition-all border"
+                      style={{
+                        background: learningStyle === value ? "color-mix(in srgb, var(--color-blue) 8%, transparent)" : "transparent",
+                        borderColor: learningStyle === value ? "var(--color-blue)" : "var(--color-border)",
+                      }}
+                    >
+                      <p className="wf-text-sm font-semibold">{label}</p>
+                      <p className="wf-text-xs mt-0.5" style={{ color: "var(--color-ink-3)" }}>{sub}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Mid-flow value hook */}
+              <div className="flex items-center gap-3 p-4 rounded-lg" style={{ background: "color-mix(in srgb, var(--color-blue) 6%, transparent)", border: "1px solid color-mix(in srgb, var(--color-blue) 20%, transparent)" }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-blue)" strokeWidth="2">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                </svg>
+                <p className="wf-text-sm" style={{ color: "var(--color-blue)" }}>
+                  <strong>Your answers unlock AI-generated session agendas</strong> — mentors get a tailored plan before every session.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between pt-4" style={{ borderTop: "1px solid var(--color-border)" }}>
+                <button onClick={() => saveStep3(true)} disabled={saving} className="wf-btn wf-btn-secondary">
+                  Skip for now
+                </button>
+                <button onClick={() => saveStep3(false)} disabled={saving} className="wf-btn wf-btn-primary">
+                  {saving ? "Saving…" : "Continue →"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── STEP 4 — Finish ── */}
+        {step === 4 && (
+          <div className="wf-card-flush">
+            <div className="wf-card-header">Almost there</div>
+            <div className="p-6 space-y-6">
+              <div className="text-center">
+                <div className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: "color-mix(in srgb, var(--color-blue) 10%, transparent)" }}>
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-blue)" strokeWidth="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                </div>
+                <h1 className="wf-h2 mb-1">You're all set{firstName ? `, ${firstName}` : ""}!</h1>
+                <p className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>
+                  Add a photo to make your profile stand out. Totally optional — you can do it later.
+                </p>
+              </div>
+
+              <div className="flex justify-center">
+                <AvatarUpload
+                  currentAvatarUrl={user?.avatarUrl ?? null}
+                  onUploadSuccess={() => {}}
+                />
+              </div>
+
+              <div className="space-y-3 pt-2">
+                <button onClick={finish} disabled={saving} className="wf-btn wf-btn-primary w-full">
+                  {saving ? "Setting up…" : "Go to my dashboard →"}
+                </button>
+                <button onClick={finish} disabled={saving} className="wf-btn-link w-full text-center block text-sm" style={{ color: "var(--color-ink-3)" }}>
+                  Skip photo for now
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

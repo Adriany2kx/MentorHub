@@ -28,6 +28,56 @@ router.get("/", requireAuth, async (req, res) => {
   return res.json({ payments });
 });
 
+// GET /api/payments/mentor — mentor sees their earnings from completed bookings
+router.get("/mentor", requireAuth, async (req, res) => {
+  const userId = req.userId!;
+  const page = Math.max(1, parseInt(String(req.query.page ?? "1")));
+  const limit = Math.min(50, Math.max(1, parseInt(String(req.query.limit ?? "20"))));
+  const skip = (page - 1) * limit;
+
+  const mentor = await prisma.mentorProfile.findUnique({
+    where: { userId },
+    select: { id: true },
+  });
+
+  if (!mentor) return res.status(404).json({ error: "Mentor profile not found" });
+
+  const [payments, total] = await Promise.all([
+    prisma.payment.findMany({
+      where: { booking: { mentor: { userId } }, status: "COMPLETED" },
+      skip,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+      include: {
+        booking: {
+          select: {
+            id: true,
+            totalPrice: true,
+            startTime: true,
+            status: true,
+            program: { select: { id: true, title: true } },
+            mentee: { select: { id: true, firstName: true, lastName: true, email: true } },
+          },
+        },
+      },
+    }),
+    prisma.payment.count({
+      where: { booking: { mentor: { userId } }, status: "COMPLETED" },
+    }),
+  ]);
+
+  const totalEarnings = await prisma.payment.aggregate({
+    _sum: { amount: true },
+    where: { booking: { mentor: { userId } }, status: "COMPLETED" },
+  });
+
+  return res.json({
+    payments,
+    totalEarnings: totalEarnings._sum.amount ? parseFloat(String(totalEarnings._sum.amount)) : 0,
+    pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+  });
+});
+
 // POST /api/payments — record a payment for a booking
 router.post("/", requireAuth, async (req, res) => {
   const parsed = z.object({

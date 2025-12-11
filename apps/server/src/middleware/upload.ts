@@ -58,6 +58,24 @@ if (!fs.existsSync(resourcesDir)) {
   fs.mkdirSync(resourcesDir, { recursive: true });
 }
 
+// Allowed resource MIME types
+const ALLOWED_RESOURCE_TYPES = [
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "text/plain",
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "video/mp4",
+  "audio/mpeg",
+  "application/zip",
+];
+
 const resourceStorage = multer.diskStorage({
   destination: (_req, _file, cb) => {
     cb(null, resourcesDir);
@@ -70,8 +88,17 @@ const resourceStorage = multer.diskStorage({
   },
 });
 
+const resourceFileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
+  if (ALLOWED_RESOURCE_TYPES.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("File type not allowed. Allowed types: PDF, Word, Excel, PowerPoint, text, images, videos, audio, and ZIP files."));
+  }
+};
+
 export const uploadResource = multer({
   storage: resourceStorage,
+  fileFilter: resourceFileFilter,
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB for resources
   },

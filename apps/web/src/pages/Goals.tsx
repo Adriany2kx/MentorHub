@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { listGoals, deleteGoal, createGoal, listMyBookings } from "../lib/api";
 import type { Goal, GoalStatus, Booking } from "../lib/api";
 import GoalCard from "../components/GoalCard";

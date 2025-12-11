@@ -21,6 +21,7 @@ import resourcesRoutes from "./routes/resources.js";
 import adminRoutes from "./routes/admin.js";
 import paymentsRoutes from "./routes/payments.js";
 import reportsRoutes from "./routes/reports.js";
+import aiRoutes from "./routes/ai.js";
 import { logger } from "./lib/logger.js";
 import { requestLogger } from "./middleware/requestLogger.js";
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -70,6 +71,7 @@ app.use("/api/resources", resourcesRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/payments", paymentsRoutes);
 app.use("/api/reports", reportsRoutes);
+app.use("/api/ai", aiRoutes);
 
 // Health check
 app.get("/api/health", (_req, res) => {
