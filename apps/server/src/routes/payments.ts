@@ -53,7 +53,7 @@ router.get("/mentor", requireAuth, async (req, res) => {
           select: {
             id: true,
             totalPrice: true,
-            startTime: true,
+            createdAt: true,
             status: true,
             program: { select: { id: true, title: true } },
             mentee: { select: { id: true, firstName: true, lastName: true, email: true } },
@@ -157,7 +157,7 @@ router.patch("/:id", requireAuth, requireAdmin, async (req, res) => {
 
   if (!parsed.success) return res.status(400).json({ error: parsed.error.errors[0].message });
 
-  const payment = await prisma.payment.findUnique({ where: { id: req.params.id } });
+  const payment = await prisma.payment.findUnique({ where: { id: req.params.id as string } });
   if (!payment) return res.status(404).json({ error: "Payment not found" });
 
   const updated = await prisma.payment.update({
@@ -220,7 +220,7 @@ router.post("/checkout", requireAuth, async (req, res) => {
 // POST /api/payments/:id/confirm — confirm payment (simulates Stripe webhook)
 router.post("/:id/confirm", requireAuth, async (req, res) => {
   const payment = await prisma.payment.findUnique({
-    where: { id: req.params.id },
+    where: { id: req.params.id as string },
     include: { booking: true },
   });
 
@@ -233,7 +233,7 @@ router.post("/:id/confirm", requireAuth, async (req, res) => {
   if (!booking) return res.status(403).json({ error: "Unauthorized" });
 
   const updated = await prisma.payment.update({
-    where: { id: req.params.id },
+    where: { id: req.params.id as string },
     data: { status: "COMPLETED" },
   });
 

@@ -116,7 +116,7 @@ router.patch("/:id/response", requireAuth, async (req, res) => {
 
   const userId = req.userId!;
 
-  const review = await prisma.review.findUnique({ where: { id: req.params.id } });
+  const review = await prisma.review.findUnique({ where: { id: req.params.id as string } });
   if (!review) return res.status(404).json({ error: "Review not found" });
 
   // Verify this is the mentor's review

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "build": "npm run db:generate && tsc",
     "start": "node dist/index.js",
     "lint": "eslint .",
     "test": "vitest run",
@@ -13,6 +13,7 @@
     "test:coverage": "vitest run --coverage",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
     "db:push": "prisma db push",
     "db:seed": "npm run db:seed:small",
     "db:seed:small": "tsx scripts/seed-local.ts --profile=small",

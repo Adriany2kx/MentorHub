@@ -130,7 +130,7 @@ router.get("/my", requireAuth, requireMentor, async (req, res) => {
 
 // GET /api/programs/:id - Get program detail
 router.get("/:id", async (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
 
   const program = await prisma.program.findUnique({
     where: { id },
@@ -203,7 +203,7 @@ router.post("/", requireAuth, requireMentor, async (req, res) => {
 
 // PATCH /api/programs/:id - Update program (owner only)
 router.patch("/:id", requireAuth, requireMentor, async (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
 
   const parsed = UpdateProgramBody.safeParse(req.body);
   if (!parsed.success) {
@@ -251,7 +251,7 @@ router.patch("/:id", requireAuth, requireMentor, async (req, res) => {
 
 // DELETE /api/programs/:id - Delete program (owner only)
 router.delete("/:id", requireAuth, requireMentor, async (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
 
   const mentorProfile = await prisma.mentorProfile.findUnique({
     where: { userId: req.userId },

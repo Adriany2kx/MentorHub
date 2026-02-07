@@ -11,6 +11,7 @@ build
 .env
 .env.*
 !.env.example
+!.env.prod.example
 
 # Prisma generated client
 apps/server/src/generated/prisma
@@ -62,3 +63,6 @@ GEMINI.md
 # Markdown files (internal docs, design system, AI tooling)
 *.md
 !/README.md
+!DEPLOYMENT.md
+!DEPLOYMENT-QUICK-REF.md
+!DEPLOYMENT-CHECKLIST.md

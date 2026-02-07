@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import { validateSession } from "../lib/session.js";
 import { env } from "../config/env.js";
 import { prisma } from "../lib/prisma.js";
-import type { Role } from "../generated/prisma/index.js";
+import type { Role } from "@prisma/client";
 
 declare global {
   namespace Express {

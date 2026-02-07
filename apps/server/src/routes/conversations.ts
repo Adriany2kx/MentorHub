@@ -87,7 +87,7 @@ router.post("/", requireAuth, async (req, res) => {
 router.get("/:id/messages", requireAuth, async (req, res) => {
   const userId = req.userId!;
 
-  const conversation = await prisma.conversation.findUnique({ where: { id: req.params.id } });
+  const conversation = await prisma.conversation.findUnique({ where: { id: req.params.id as string } });
   if (!conversation) return res.status(404).json({ error: "Conversation not found" });
 
   if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
@@ -126,7 +126,7 @@ router.post("/:id/messages", requireAuth, async (req, res) => {
   if (!parsed.success) return res.status(400).json({ error: parsed.error.errors[0].message });
 
   const userId = req.userId!;
-  const conversation = await prisma.conversation.findUnique({ where: { id: req.params.id } });
+  const conversation = await prisma.conversation.findUnique({ where: { id: req.params.id as string } });
   if (!conversation) return res.status(404).json({ error: "Conversation not found" });
 
   if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
@@ -154,7 +154,7 @@ router.patch("/:convId/messages/:msgId/read", requireAuth, async (req, res) => {
   const userId = req.userId!;
 
   const message = await prisma.message.findUnique({
-    where: { id: req.params.msgId },
+    where: { id: req.params.msgId as string },
     include: { conversation: true },
   });
 

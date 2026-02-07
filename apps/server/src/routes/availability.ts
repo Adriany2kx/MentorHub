@@ -153,7 +153,7 @@ router.post("/bulk", requireAuth, requireMentor, async (req, res) => {
 
 // DELETE /api/availability/:id - Delete availability slot
 router.delete("/:id", requireAuth, requireMentor, async (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
 
   const mentorProfile = await prisma.mentorProfile.findUnique({
     where: { userId: req.userId },

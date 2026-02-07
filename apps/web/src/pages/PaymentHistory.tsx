@@ -61,34 +61,38 @@ export default function PaymentHistory() {
                 </tr>
               </thead>
               <tbody>
-                {payments.map((payment) => (
-                  <tr key={payment.id}>
-                    <td>
-                      <p className="wf-text font-semibold">{payment.booking.program.title}</p>
-                    </td>
-                    <td>
-                      <p className="wf-text">
-                        {payment.booking.mentor.user.firstName} {payment.booking.mentor.user.lastName}
-                      </p>
-                    </td>
-                    <td>
-                      <p className="wf-text font-semibold">£{parseFloat(payment.amount).toFixed(2)}</p>
-                    </td>
-                    <td>
-                      <span className={`wf-badge ${STATUS_BADGE[payment.status]}`}>{payment.status}</span>
-                    </td>
-                    <td>
-                      <p className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>
-                        {new Date(payment.createdAt).toLocaleDateString()}
-                      </p>
-                    </td>
-                    <td>
-                      <Link to={`/bookings/${payment.booking.id}`} className="wf-btn wf-btn-secondary text-sm py-1">
-                        View Booking
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
+                {payments.map((payment) => {
+                  const booking = payment.booking;
+                  const mentorName = booking.mentor
+                    ? `${booking.mentor.user.firstName ?? ""} ${booking.mentor.user.lastName ?? ""}`.trim()
+                    : "Mentor";
+                  return (
+                    <tr key={payment.id}>
+                      <td>
+                        <p className="wf-text font-semibold">{booking.program.title}</p>
+                      </td>
+                      <td>
+                        <p className="wf-text">{mentorName}</p>
+                      </td>
+                      <td>
+                        <p className="wf-text font-semibold">£{parseFloat(payment.amount).toFixed(2)}</p>
+                      </td>
+                      <td>
+                        <span className={`wf-badge ${STATUS_BADGE[payment.status]}`}>{payment.status}</span>
+                      </td>
+                      <td>
+                        <p className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>
+                          {new Date(payment.createdAt).toLocaleDateString()}
+                        </p>
+                      </td>
+                      <td>
+                        <Link to={`/bookings/${booking.id}`} className="wf-btn wf-btn-secondary text-sm py-1">
+                          View Booking
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}

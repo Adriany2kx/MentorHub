@@ -6,8 +6,8 @@ import type { AuthUser, Role } from "../lib/api";
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, recaptchaToken?: string) => Promise<void>;
+  register: (email: string, password: string, recaptchaToken?: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   isRole: (role: Role) => boolean;
@@ -35,13 +35,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refreshUser().finally(() => setLoading(false));
   }, [refreshUser]);
 
-  const login = async (email: string, password: string) => {
-    const data = await apiLogin(email, password);
+  const login = async (email: string, password: string, recaptchaToken?: string) => {
+    const data = await apiLogin(email, password, recaptchaToken);
     setUser(data.user);
   };
 
-  const register = async (email: string, password: string) => {
-    const data = await apiRegister(email, password);
+  const register = async (email: string, password: string, recaptchaToken?: string) => {
+    const data = await apiRegister(email, password, recaptchaToken);
     setUser(data.user);
   };
 

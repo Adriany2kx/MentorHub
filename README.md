@@ -20,6 +20,7 @@ Connecting mentors and mentees through intelligent matching, structured session 
     <li><a href="#built-with">Built With</a></li>
     <li><a href="#architecture">Architecture</a></li>
     <li><a href="#getting-started">Getting Started</a></li>
+    <li><a href="#deployment">Deployment</a></li>
     <li><a href="#features">Features</a></li>
     <li><a href="#skills-learned">Skills Learned</a></li>
     <li><a href="#whats-to-come">What's To Come</a></li>
@@ -154,6 +155,45 @@ The backend exposes a RESTful API consumed exclusively by the frontend. All data
    # Terminal 2 — frontend (http://localhost:5173)
    npm run dev:web
    ```
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+---
+
+## Deployment
+
+MentorHub is containerized and ready for deployment to Digital Ocean (or any cloud platform with Docker support).
+
+**[→ See Deployment Guide](./DEPLOYMENT.md)** for step-by-step instructions.
+
+**Key files:**
+- `docker-compose.prod.yml` — Production service orchestration
+- `apps/server/Dockerfile` — Backend image (Node.js + Express)
+- `apps/web/Dockerfile` — Frontend image (React + Nginx)
+- `DEPLOYMENT.md` — Complete deployment walkthrough
+- `DEPLOYMENT-QUICK-REF.md` — Command reference
+- `scripts/deploy-digital-ocean.sh` — Automated deployment script
+
+**Quick start:**
+```bash
+# 1. Create a Digital Ocean Droplet (Ubuntu 24.04, 2GB+ RAM)
+# 2. SSH into the Droplet
+ssh root@[DROPLET_IP]
+
+# 3. Run deployment script
+curl https://raw.githubusercontent.com/Adriany2kx/Final-project/main/scripts/deploy-digital-ocean.sh | bash
+
+# 4. Configure .env.prod with your secrets
+# 5. Done! Access at https://yourdomain.com
+```
+
+Includes:
+- ✅ Multi-stage Docker builds (minimal images)
+- ✅ SSL/TLS with Let's Encrypt
+- ✅ Health checks & auto-restart
+- ✅ Persistent volumes
+- ✅ Security headers & compression
+- ✅ PostgreSQL, Express, React + Nginx
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

@@ -24,6 +24,8 @@ export default function BookingDetail() {
   const [searchParams] = useSearchParams();
   const [showBookedBanner, setShowBookedBanner] = useState(searchParams.get("booked") === "1");
   const [showPaidBanner, setShowPaidBanner] = useState(searchParams.get("paid") === "1");
+  const isMentor = user?.role === "MENTOR" || user?.role === "ADMIN";
+  const viewAs = isMentor ? "mentor" : "mentee";
 
   useEffect(() => {
     if (showBookedBanner) {
@@ -66,9 +68,6 @@ export default function BookingDetail() {
       })
       .catch(() => setPaymentStatus(null));
   }, [id, isMentor]);
-
-  const isMentor = user?.role === "MENTOR" || user?.role === "ADMIN";
-  const viewAs = isMentor ? "mentor" : "mentee";
 
   async function handleConfirm() {
     if (!booking) return;

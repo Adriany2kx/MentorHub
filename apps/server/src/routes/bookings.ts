@@ -131,7 +131,7 @@ router.get("/:id", requireAuth, async (req, res) => {
   const role = req.userRole;
 
   const booking = await prisma.booking.findUnique({
-    where: { id: req.params.id },
+    where: { id: req.params.id as string },
     include: {
       program: {
         select: { id: true, title: true, description: true, duration: true, sessionCount: true, price: true, topics: true },
@@ -171,7 +171,7 @@ router.patch("/:id/confirm", requireAuth, requireMentor, async (req, res) => {
   if (!mentorProfile) return res.status(403).json({ error: "Mentor profile not found" });
 
   const booking = await prisma.booking.findFirst({
-    where: { id: req.params.id, mentorId: mentorProfile.id },
+    where: { id: req.params.id as string, mentorId: mentorProfile.id },
   });
 
   if (!booking) return res.status(404).json({ error: "Booking not found" });
@@ -198,7 +198,7 @@ router.patch("/:id/cancel", requireAuth, async (req, res) => {
   const userId = req.userId!;
   const role = req.userRole;
 
-  const booking = await prisma.booking.findUnique({ where: { id: req.params.id } });
+  const booking = await prisma.booking.findUnique({ where: { id: req.params.id as string } });
   if (!booking) return res.status(404).json({ error: "Booking not found" });
 
   // Check ownership
@@ -244,7 +244,7 @@ router.post("/:id/sessions", requireAuth, requireMentor, async (req, res) => {
   if (!mentorProfile) return res.status(403).json({ error: "Mentor profile not found" });
 
   const booking = await prisma.booking.findFirst({
-    where: { id: req.params.id, mentorId: mentorProfile.id },
+    where: { id: req.params.id as string, mentorId: mentorProfile.id },
     include: { program: true, sessions: true },
   });
 

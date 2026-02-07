@@ -1,0 +1,78 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: mentorhub_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-final_project}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:-final_project}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-final_project}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: ./apps/server/Dockerfile
+    container_name: mentorHub_backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${DB_USER:-final_project}:${DB_PASSWORD}@db:5432/${DB_NAME:-final_project}
+      PORT: 3000
+      FRONTEND_URL: ${FRONTEND_URL}
+      SESSION_SECRET: ${SESSION_SECRET}
+      COOKIE_SECURE: "true"
+      COOKIE_SAMESITE: "strict"
+      EMAIL_FROM: ${EMAIL_FROM}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      LOG_LEVEL: info
+      RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      AI_MODEL: gemini-1.5-flash
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./apps/server/uploads:/app/apps/server/uploads
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: ./apps/web/Dockerfile
+      args:
+        VITE_RECAPTCHA_SITE_KEY: ${VITE_RECAPTCHA_SITE_KEY}
+    container_name: mentorHub_frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    environment:
+      NGINX_HOST: ${NGINX_HOST}
+
+volumes:
+  db_data:
+    driver: local
+
+networks:
+  default:
+    name: mentorHub_network

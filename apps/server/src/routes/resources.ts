@@ -102,7 +102,7 @@ router.get("/:id", requireAuth, async (req, res) => {
 
   const resource = await prisma.resource.findFirst({
     where: {
-      id: req.params.id,
+      id: req.params.id as string,
       OR: [{ uploaderId: userId }, { isPublic: true }],
     },
     include: {
@@ -120,7 +120,7 @@ router.get("/:id/download", requireAuth, async (req, res) => {
 
   const resource = await prisma.resource.findFirst({
     where: {
-      id: req.params.id,
+      id: req.params.id as string,
       OR: [{ uploaderId: userId }, { isPublic: true }],
     },
   });
@@ -144,7 +144,7 @@ router.get("/:id/preview", requireAuth, async (req, res) => {
 
   const resource = await prisma.resource.findFirst({
     where: {
-      id: req.params.id,
+      id: req.params.id as string,
       OR: [{ uploaderId: userId }, { isPublic: true }],
     },
   });
@@ -173,7 +173,7 @@ router.get("/:id/preview", requireAuth, async (req, res) => {
 router.delete("/:id", requireAuth, async (req, res) => {
   const userId = req.userId!;
 
-  const resource = await prisma.resource.findFirst({ where: { id: req.params.id, uploaderId: userId } });
+  const resource = await prisma.resource.findFirst({ where: { id: req.params.id as string, uploaderId: userId } });
   if (!resource) return res.status(404).json({ error: "We couldn't find this file." });
 
   // Remove file from disk

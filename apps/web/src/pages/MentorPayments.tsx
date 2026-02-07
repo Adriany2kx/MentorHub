@@ -77,13 +77,16 @@ export default function MentorPayments() {
           <div className="divide-y" style={{ borderColor: "var(--color-border)" }}>
             {payments.map((payment) => {
               const booking = payment.booking;
+              const menteeName = booking.mentee
+                ? `${booking.mentee.firstName ?? ""} ${booking.mentee.lastName ?? ""}`.trim()
+                : "Mentee";
               return (
                 <div key={payment.id} className="p-4">
                   <div className="flex items-start justify-between gap-4 mb-2">
                     <div className="flex-1 min-w-0">
                       <p className="wf-text font-semibold">{booking.program.title}</p>
                       <p className="wf-text-sm" style={{ color: "var(--color-ink-3)" }}>
-                        {booking.mentee.firstName} {booking.mentee.lastName}
+                        {menteeName}
                       </p>
                     </div>
                     <p className="wf-h3">£{parseFloat(payment.amount).toFixed(2)}</p>
@@ -107,14 +110,16 @@ export default function MentorPayments() {
             <p className="wf-text-xs">Page {page} of {totalPages}</p>
             <div className="flex gap-2">
               <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                onClick={() => setPage((p) => Math.max(1, p - 1))
+                }
                 disabled={page === 1}
                 className="wf-btn wf-btn-secondary"
               >
                 Prev
               </button>
               <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))
+                }
                 disabled={page === totalPages}
                 className="wf-btn wf-btn-secondary"
               >
