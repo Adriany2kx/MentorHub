@@ -12,7 +12,7 @@ fi
 
 APP_DIR="/root/mentorhub"
 REPO_URL="https://github.com/Adriany2kx/Final-project.git"
-BRANCH="agents/deploy-website-to-digital-ocean"
+BRANCH="production"
 
 echo " MentorHub Digital Ocean Deployment"
 echo ""
@@ -83,7 +83,7 @@ set -a
 set +a
 
 missing=()
-for var in DB_PASSWORD FRONTEND_URL SESSION_SECRET EMAIL_FROM SMTP_HOST SMTP_PORT SMTP_USER SMTP_PASS NGINX_HOST; do
+for var in DB_PASSWORD FRONTEND_URL SESSION_SECRET EMAIL_FROM SMTP_HOST SMTP_PORT SMTP_USER SMTP_PASS NGINX_HOST VITE_RECAPTCHA_SITE_KEY RECAPTCHA_SECRET_KEY; do
   if [ -z "${!var:-}" ]; then
     missing+=("${var}")
   fi

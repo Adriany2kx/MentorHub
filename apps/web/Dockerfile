@@ -9,11 +9,6 @@ COPY apps/web ./apps/web
 
 RUN npm install
 
-# Write reCAPTCHA site key into .env.production so Vite picks it up
-ARG VITE_RECAPTCHA_SITE_KEY
-RUN echo "VITE_RECAPTCHA_SITE_KEY=${VITE_RECAPTCHA_SITE_KEY}" > apps/web/.env.production
-
-# Build the React app
 RUN npm run build:web
 
 # Runtime stage - use lightweight nginx

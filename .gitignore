@@ -47,6 +47,12 @@ coverage
 # Temp files
 *.tmp
 *.temp
+
+# Playwright CLI snapshots and screenshots
+.playwright-cli/
+*.png
+*.pdf
+*.webm
 .cache
 
 

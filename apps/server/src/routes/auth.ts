@@ -90,12 +90,9 @@ router.post("/register", registerLimiter, async (req, res) => {
       },
     });
 
-    try {
-      await sendVerificationEmail(email, verificationToken);
-    } catch (err) {
-      // Log but don't fail registration if email fails
+    sendVerificationEmail(email, verificationToken).catch(err => {
       logger.error({ err, email }, "Failed to send verification email");
-    }
+    });
 
     const { session: _, token } = await createSession(user.id);
     setCookie(res, token);

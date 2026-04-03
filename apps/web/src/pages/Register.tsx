@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useAuth } from "../context/AuthContext";
@@ -79,6 +79,7 @@ export default function Register() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -97,6 +98,7 @@ export default function Register() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed. Please try again.");
       setRecaptchaToken(null);
+      recaptchaRef.current?.reset();
     } finally {
       setIsLoading(false);
     }
@@ -139,15 +141,12 @@ export default function Register() {
               onChange={setConfirmPassword}
               autoComplete="new-password"
             />
+            <ReCAPTCHA
+              ref={recaptchaRef}
+              sitekey="6LdHe_csAAAAAG54AZsWx97lL6EPFhZxyh18SuRW"
+              onChange={setRecaptchaToken}
+            />
             {error && <p role="alert" className="wf-error-text">{error}</p>}
-            <div className="flex justify-center py-4">
-              <ReCAPTCHA
-                sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
-                onChange={(token) => setRecaptchaToken(token)}
-                onExpired={() => setRecaptchaToken(null)}
-                onErrored={() => setRecaptchaToken(null)}
-              />
-            </div>
             <button
               type="submit"
               className="wf-btn wf-btn-primary w-full mt-2"

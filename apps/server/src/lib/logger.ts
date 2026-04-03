@@ -16,20 +16,10 @@ const destination = pino.destination({
   mkdir: true,
 });
 
-const streams = [{ stream: destination }] as Array<{ stream: any }>;
-
-if (env.NODE_ENV === "development") {
-  streams.push({
-    stream: pino.transport({
-      target: "pino-pretty",
-      options: {
-        colorize: true,
-        translateTime: "SYS:standard",
-        ignore: "pid,hostname",
-      },
-    }),
-  });
-}
+const streams = [
+  { stream: destination },
+  { stream: process.stdout },
+] as Array<{ stream: any }>;
 
 export const logger = pino(
   {

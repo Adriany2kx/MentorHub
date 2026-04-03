@@ -116,7 +116,7 @@ export default function Login() {
             {failedAttempts >= 4 && (
               <div className="flex justify-center py-4">
                 <ReCAPTCHA
-                  sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                  sitekey="6LdHe_csAAAAAG54AZsWx97lL6EPFhZxyh18SuRW"
                   onChange={(token) => setRecaptchaToken(token)}
                   onExpired={() => setRecaptchaToken(null)}
                   onErrored={() => setRecaptchaToken(null)}
