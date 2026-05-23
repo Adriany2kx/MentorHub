@@ -56,3 +56,6 @@ apps/web/test-results/
 
 # User uploads
 apps/server/uploads/
+
+# Working files - local only
+work_in_progress/
