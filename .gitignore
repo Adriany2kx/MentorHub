@@ -48,27 +48,11 @@ coverage
 *.tmp
 *.temp
 
-# Playwright CLI snapshots and screenshots
-.playwright-cli/
-*.png
-*.pdf
+# Playwright build artifacts
+apps/web/playwright-report/
+apps/web/test-results/
 *.webm
 .cache
 
-
-# Claude Code
-.claude/
-.claude.json
-CLAUDE.md
-
-# OpenSpec
-openspec/
-GEMINI.md
-.github/copilot-instructions.md
-
-# Markdown files (internal docs, design system, AI tooling)
-*.md
-!/README.md
-!DEPLOYMENT.md
-!DEPLOYMENT-QUICK-REF.md
-!DEPLOYMENT-CHECKLIST.md
+# User uploads
+apps/server/uploads/

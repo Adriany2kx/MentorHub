@@ -13,6 +13,7 @@ export default function Dashboard() {
   const [recommendations, setRecommendations] = useState<AiMentorRecommendation[]>([]);
   const [recommendedMentors, setRecommendedMentors] = useState<Record<string, MentorDetail>>({});
   const [recLoading, setRecLoading] = useState(false);
+  const [profileInsufficient, setProfileInsufficient] = useState(false);
   const [profileQuality, setProfileQuality] = useState<AiProfileQuality | null>(null);
   const [insights, setInsights] = useState<AiInsights | null>(null);
   const [insightsLoading, setInsightsLoading] = useState(false);
@@ -75,8 +76,9 @@ export default function Dashboard() {
 
     setRecLoading(true);
     getMentorRecommendations()
-      .then(({ recommendations: recs }) => {
+      .then(({ recommendations: recs, profileInsufficient: insufficient }) => {
         setRecommendations(recs);
+        setProfileInsufficient(!!insufficient);
         return Promise.all(recs.map((r) => getMentor(r.mentorId).catch(() => null)));
       })
       .then((mentors) => {
@@ -413,8 +415,19 @@ export default function Dashboard() {
             ) : recommendations.length === 0 ? (
               <div className="p-6">
                 <div className="wf-empty">
-                  <p className="wf-empty-title">No recommendations yet</p>
-                  <p className="wf-empty-text">Complete your mentee profile to get personalised matches.</p>
+                  {profileInsufficient ? (
+                    <>
+                      <p className="wf-empty-title">Complete your profile for better matches</p>
+                      <p className="wf-empty-text">Add your current role, target role, and goals so we can find the right mentors for you.</p>
+                      <Link to="/profile/edit" className="wf-btn wf-btn-primary mt-4" style={{ display: "inline-block" }}>Complete profile</Link>
+                    </>
+                  ) : (
+                    <>
+                      <p className="wf-empty-title">No recommendations yet</p>
+                      <p className="wf-empty-text">We couldn't find strong matches right now. Try browsing all mentors.</p>
+                      <Link to="/mentors" className="wf-btn wf-btn-secondary mt-4" style={{ display: "inline-block" }}>Browse mentors</Link>
+                    </>
+                  )}
                 </div>
               </div>
             ) : (

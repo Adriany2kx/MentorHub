@@ -94,7 +94,7 @@ export default function Register() {
     setIsLoading(true);
     try {
       await register(email, password, recaptchaToken || undefined);
-      navigate("/");
+      navigate("/verify-email?sent=true");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed. Please try again.");
       setRecaptchaToken(null);

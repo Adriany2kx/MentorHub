@@ -133,6 +133,10 @@ export function getMe() {
   return request<{ user: AuthUser }>("/auth/me");
 }
 
+export function resendVerificationEmail() {
+  return request<{ message: string }>("/auth/resend-verification", { method: "POST" });
+}
+
 export function verifyEmail(token: string) {
   return request<{ message: string }>("/auth/verify-email", {
     method: "POST",
@@ -1051,7 +1055,7 @@ export interface AiProfileQuality {
 }
 
 export function getMentorRecommendations() {
-  return request<{ recommendations: AiMentorRecommendation[] }>("/ai/mentor-recommendations");
+  return request<{ recommendations: AiMentorRecommendation[]; profileInsufficient: boolean }>("/ai/mentor-recommendations");
 }
 
 export function getCompatibilityScore(mentorId: string) {

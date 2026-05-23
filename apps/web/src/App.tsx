@@ -56,6 +56,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return <LoadingState fullScreen title="Checking your session" message="Securing your dashboard access." />;
   if (!user) return <Navigate to="/login" />;
+  if (!user.isVerified) return <Navigate to="/verify-email?sent=true" />;
   return <>{children}</>;
 }
 

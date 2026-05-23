@@ -226,6 +226,28 @@ router.post("/verify-email", resetLimiter, async (req, res) => {
   res.json({ message: "Email verified successfully" });
 });
 
+// POST /api/auth/resend-verification
+router.post("/resend-verification", resetLimiter, requireAuth, async (req, res) => {
+  const user = await prisma.user.findUnique({ where: { id: req.userId } });
+  if (!user) { res.status(404).json({ error: "User not found" }); return; }
+  if (user.isVerified) { res.status(400).json({ error: "Email already verified" }); return; }
+
+  const verificationToken = generateToken();
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      verificationToken,
+      verificationTokenExpiry: new Date(Date.now() + env.EMAIL_VERIFICATION_TTL_MS),
+    },
+  });
+
+  sendVerificationEmail(user.email, verificationToken).catch(err => {
+    logger.error({ err, email: user.email }, "Failed to resend verification email");
+  });
+
+  res.json({ message: "Verification email sent" });
+});
+
 // POST /api/auth/request-reset
 router.post("/request-reset", resetLimiter, async (req, res) => {
   const parsed = RequestResetBody.safeParse(req.body);

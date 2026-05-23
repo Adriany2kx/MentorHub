@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
+import { logger } from "../lib/logger.js";
 import { SchemaType } from "@google/generative-ai";
 import type { Schema } from "@google/generative-ai";
 import {
@@ -118,24 +119,34 @@ router.get("/mentor-recommendations", async (req, res) => {
     }),
   ]);
 
-  if (mentors.length === 0) return res.json({ recommendations: [] });
+  if (mentors.length === 0) return res.json({ recommendations: [], profileInsufficient: false });
+
+  // Check if profile has enough data for meaningful recommendations
+  const filledFields = [
+    menteeProfile?.currentRole,
+    menteeProfile?.targetRole,
+    menteeProfile?.goals,
+  ].filter(Boolean).length;
+  const profileInsufficient = !menteeProfile || filledFields < 2;
+
+  if (profileInsufficient) {
+    return res.json({ recommendations: [], profileInsufficient: true });
+  }
 
   const skills = (menteeProfile?.skills ?? []) as { skill: string; level: string }[];
   const skillSummary = skills.length > 0
     ? skills.map((s) => `${s.skill}(${s.level})`).join(", ")
     : "not specified";
 
-  const menteeContext = menteeProfile
-    ? [
-        `Current role: ${menteeProfile.currentRole ?? "unknown"}`,
-        `Target role: ${menteeProfile.targetRole ?? "unknown"}`,
-        `Target industry: ${menteeProfile.targetIndustry ?? "not specified"}`,
-        `Current skills: ${skillSummary}`,
-        `Goals: ${menteeProfile.goals ?? "not specified"}`,
-        `Biggest challenge right now: ${menteeProfile.currentBlocker ?? "not specified"}`,
-        `Learning style: ${menteeProfile.learningStyle ?? "not specified"}`,
-      ].join(". ")
-    : "No mentee profile created yet.";
+  const menteeContext = [
+    `Current role: ${menteeProfile.currentRole ?? "unknown"}`,
+    `Target role: ${menteeProfile.targetRole ?? "unknown"}`,
+    `Target industry: ${menteeProfile.targetIndustry ?? "not specified"}`,
+    `Current skills: ${skillSummary}`,
+    `Goals: ${menteeProfile.goals ?? "not specified"}`,
+    `Biggest challenge right now: ${menteeProfile.currentBlocker ?? "not specified"}`,
+    `Learning style: ${menteeProfile.learningStyle ?? "not specified"}`,
+  ].join(". ");
 
   const mentorList = mentors
     .map((m) => `ID:${m.id} | ${m.user.firstName ?? ""} ${m.user.lastName ?? ""} | Expertise: ${m.expertise.join(", ")} | Rate: $${m.hourlyRate ?? "??"}/hr | Exp: ${m.yearsExperience ?? "??"} yrs | TZ: ${m.user.timezone ?? "unknown"}`)
@@ -149,8 +160,9 @@ router.get("/mentor-recommendations", async (req, res) => {
   try {
     type Rec = { mentorId: string; score: number; reason: string };
     const recommendations = await generateJson<Rec[]>(systemInstruction, userPrompt, mentorMatchSchema);
-    return res.json({ recommendations: recommendations.slice(0, 5) });
-  } catch {
+    return res.json({ recommendations: recommendations.slice(0, 5), profileInsufficient: false });
+  } catch (err) {
+    logger.error({ err }, "Gemini mentor-recommendations failed");
     return res.status(503).json({ error: "AI service temporarily unavailable" });
   }
 });

@@ -19,11 +19,8 @@ export const env = {
   COOKIE_SAMESITE: (process.env.COOKIE_SAMESITE ?? "strict") as "strict" | "lax",
   SESSION_TTL_MS: parseInt(process.env.SESSION_TTL_MS ?? "3600000", 10), // 1 hour
 
-  EMAIL_FROM: process.env.EMAIL_FROM ?? "noreply@example.com",
-  SMTP_HOST: process.env.SMTP_HOST ?? "localhost",
-  SMTP_PORT: parseInt(process.env.SMTP_PORT ?? "587", 10),
-  SMTP_USER: process.env.SMTP_USER ?? "",
-  SMTP_PASS: process.env.SMTP_PASS ?? "",
+  EMAIL_FROM: process.env.EMAIL_FROM ?? "noreply@mentor-hub.app",
+  RESEND_API_KEY: process.env.RESEND_API_KEY ?? "",
 
   LOG_LEVEL: process.env.LOG_LEVEL ?? "info",
   LOG_FILE_PATH: process.env.LOG_FILE_PATH ?? "",
@@ -39,7 +36,7 @@ export const env = {
   // AI / LLM (Google Gemini)
   // Free tier: gemini-1.5-flash — 15 RPM, 1M tokens/day
   GEMINI_API_KEY: process.env.GEMINI_API_KEY ?? "",
-  AI_MODEL: process.env.AI_MODEL ?? "gemini-1.5-flash",
+  AI_MODEL: process.env.AI_MODEL ?? "gemini-2.0-flash",
   AI_MENTOR_LIST_LIMIT: parseInt(process.env.AI_MENTOR_LIST_LIMIT ?? "50", 10), // Gemini 1M ctx handles more
   INSIGHTS_CACHE_TTL_HOURS: parseInt(process.env.INSIGHTS_CACHE_TTL_HOURS ?? "24", 10),
   SESSION_RECOMMENDATION_WINDOW_HOURS: parseInt(process.env.SESSION_RECOMMENDATION_WINDOW_HOURS ?? "48", 10),
