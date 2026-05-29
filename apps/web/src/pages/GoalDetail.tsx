@@ -220,9 +220,9 @@ export default function GoalDetail() {
         )}
 
         {/* Header card */}
-        <div className="wf-card mb-4">
+        <div className="wf-card p-6 mb-6">
           {editing ? (
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
                 <label className="wf-label">Title</label>
                 <input
@@ -287,7 +287,7 @@ export default function GoalDetail() {
             </div>
           ) : (
             <>
-              <div className="flex items-start justify-between gap-3 mb-4">
+              <div className="flex items-start justify-between gap-4 mb-5">
                 <h1 className="wf-h2">{goal.title}</h1>
                 <div className="flex items-center gap-2 shrink-0">
                   <span className={STATUS_BADGE[goal.status]}>
@@ -303,12 +303,12 @@ export default function GoalDetail() {
               </div>
 
               {goal.description && (
-                <p className="wf-text mb-4 whitespace-pre-wrap" style={{ color: "var(--color-ink-2)" }}>{goal.description}</p>
+                <p className="wf-text mb-5 whitespace-pre-wrap" style={{ color: "var(--color-ink-2)" }}>{goal.description}</p>
               )}
 
               <GoalProgressBar progress={goal.progress} />
 
-              <div className="flex flex-wrap gap-4 mt-3">
+              <div className="flex flex-wrap gap-4 mt-4">
                 {goal.targetDate && (
                   <span className="wf-text-xs">
                     Due: {new Date(goal.targetDate).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}
@@ -326,8 +326,8 @@ export default function GoalDetail() {
         </div>
 
         {/* Milestones */}
-        <div className="wf-card">
-          <div className="flex items-center justify-between mb-4">
+        <div className="wf-card p-6 mb-6">
+          <div className="flex items-center justify-between mb-5">
             <h2 className="wf-h3">
               Milestones
               {goal.milestones.length > 0 && (
@@ -358,9 +358,9 @@ export default function GoalDetail() {
           )}
 
           {goal.milestones.length === 0 ? (
-            <p className="wf-text-sm mb-4">No milestones yet.</p>
+            <p className="wf-text-sm mb-5">No milestones yet.</p>
           ) : (
-            <ul className="space-y-3 mb-4">
+            <ul className="space-y-4 mb-5">
               {goal.milestones.map((m) => (
                 <li key={m.id} className="flex items-center gap-3">
                   <button
@@ -392,7 +392,7 @@ export default function GoalDetail() {
           )}
 
           {/* Add milestone form */}
-          <form onSubmit={handleAddMilestone} className="flex gap-2 mt-2">
+          <form onSubmit={handleAddMilestone} className="flex gap-3 mt-4 pt-4 border-t" style={{ borderColor: "var(--color-border)" }}>
             <input
               type="text"
               value={newMilestone}
@@ -412,7 +412,7 @@ export default function GoalDetail() {
         </div>
 
         {goalMentors.length > 0 && (
-          <div className="wf-card-flush mt-5">
+          <div className="wf-card-flush mt-6 mb-6">
             <div className="wf-card-header" style={{ justifyContent: "space-between" }}>
               <span>Mentors Suggested for this Goal</span>
               <Link to="/mentors" className="wf-btn-link" style={{ fontSize: 12 }}>Browse all →</Link>
@@ -427,7 +427,7 @@ export default function GoalDetail() {
                   <Link
                     key={rec.mentorId}
                     to={`/mentors/${rec.mentorId}`}
-                    className="flex items-center justify-between px-5 py-4 transition-colors no-underline"
+                    className="flex items-center justify-between px-6 py-5 transition-colors no-underline"
                     onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-bg)")}
                     onMouseLeave={(e) => (e.currentTarget.style.background = "")}
                   >
@@ -461,9 +461,9 @@ export default function GoalDetail() {
 
         {/* Prediction card */}
         {prediction && prediction.trajectory !== "completed" && (
-          <div className="wf-card-flush mt-5">
+          <div className="wf-card-flush mt-6 mb-6">
             <div className="wf-card-header">Achievement Prediction</div>
-            <div className="p-5 flex items-center gap-5 flex-wrap">
+            <div className="p-6 flex items-center gap-6 flex-wrap">
               <div className="text-center">
                 <div
                   className="text-3xl font-bold"
@@ -507,7 +507,7 @@ export default function GoalDetail() {
         )}
 
         {/* Learning Path */}
-        <div className="wf-card-flush mt-5">
+        <div className="wf-card-flush mt-6 mb-6">
           <div className="wf-card-header" style={{ justifyContent: "space-between" }}>
             <span>Learning Path</span>
             {!learningPath && (
@@ -526,15 +526,15 @@ export default function GoalDetail() {
             )}
           </div>
           {!learningPath && !pathLoading && (
-            <div className="p-5">
+            <div className="p-6">
               <p className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>
                 Get an ordered learning path from your current skills to your target role.
               </p>
             </div>
           )}
-          {pathLoading && <div className="p-5 wf-text-sm" style={{ color: "var(--color-ink-3)" }}>Building your learning path…</div>}
+          {pathLoading && <div className="p-6 wf-text-sm" style={{ color: "var(--color-ink-3)" }}>Building your learning path…</div>}
           {learningPath && (
-            <div className="p-5 space-y-4">
+            <div className="p-6 space-y-5">
               {learningPath.map((stage, i) => (
                 <div key={i} className="flex gap-4">
                   <div className="flex flex-col items-center">
@@ -571,7 +571,7 @@ export default function GoalDetail() {
         </div>
 
         {/* Resource Recommendations */}
-        <div className="wf-card-flush mt-5">
+        <div className="wf-card-flush mt-6 mb-8">
           <div className="wf-card-header" style={{ justifyContent: "space-between" }}>
             <span>Suggested Resources</span>
             {!resources && (
@@ -590,17 +590,17 @@ export default function GoalDetail() {
             )}
           </div>
           {!resources && !resourcesLoading && (
-            <div className="p-5">
+            <div className="p-6">
               <p className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>
                 Get contextual resource suggestions based on where you are in this goal.
               </p>
             </div>
           )}
-          {resourcesLoading && <div className="p-5 wf-text-sm" style={{ color: "var(--color-ink-3)" }}>Finding relevant resources…</div>}
+          {resourcesLoading && <div className="p-6 wf-text-sm" style={{ color: "var(--color-ink-3)" }}>Finding relevant resources…</div>}
           {resources && (
             <div className="divide-y" style={{ borderColor: "var(--color-border)" }}>
               {resources.map((r, i) => (
-                <div key={i} className="px-5 py-4">
+                <div key={i} className="px-6 py-5">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="wf-tag">{r.resourceType}</span>
                     <p className="wf-text-sm font-medium">{r.topic}</p>
