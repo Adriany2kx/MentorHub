@@ -34,9 +34,9 @@ export const env = {
   RECAPTCHA_SECRET_KEY: process.env.RECAPTCHA_SECRET_KEY ?? "",
 
   // AI / LLM (Google Gemini)
-  // Free tier: gemini-1.5-flash — 15 RPM, 1M tokens/day
+  // Using gemini-2.5-flash (stable June 2025) — 1M token context
   GEMINI_API_KEY: process.env.GEMINI_API_KEY ?? "",
-  AI_MODEL: process.env.AI_MODEL ?? "gemini-2.0-flash",
+  AI_MODEL: process.env.AI_MODEL ?? "gemini-2.5-flash",
   AI_MENTOR_LIST_LIMIT: parseInt(process.env.AI_MENTOR_LIST_LIMIT ?? "50", 10), // Gemini 1M ctx handles more
   INSIGHTS_CACHE_TTL_HOURS: parseInt(process.env.INSIGHTS_CACHE_TTL_HOURS ?? "24", 10),
   SESSION_RECOMMENDATION_WINDOW_HOURS: parseInt(process.env.SESSION_RECOMMENDATION_WINDOW_HOURS ?? "48", 10),
