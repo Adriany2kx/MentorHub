@@ -32,9 +32,10 @@ export default function GoalCard({ goal, onDelete }: GoalCardProps) {
   const pill = STATUS_PILL[goal.status] ?? "wf-badge wf-badge-neutral";
 
   return (
-    <div className="wf-card flex flex-col gap-4 p-5">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0 pt-0.5">
+    <div className="wf-card flex flex-col p-6">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4 mb-4">
+        <div className="flex-1 min-w-0">
           <Link
             to={`/goals/${goal.id}`}
             className="wf-h3 block no-underline hover:underline"
@@ -42,23 +43,28 @@ export default function GoalCard({ goal, onDelete }: GoalCardProps) {
             {goal.title}
           </Link>
           {goal.booking && (
-            <p className="wf-text-xs mt-1.5 wf-copy" style={{ color: "var(--color-ink-3)" }}>
+            <p className="wf-text-xs mt-2" style={{ color: "var(--color-ink-3)" }}>
               {goal.booking.program.title}
             </p>
           )}
         </div>
-        <span className={`shrink-0 ${pill}`} style={{ marginTop: 2 }}>
+        <span className={`shrink-0 ${pill}`}>
           {STATUS_LABELS[goal.status]}
         </span>
       </div>
 
+      {/* Description */}
       {goal.description && (
-        <p className="wf-text-sm line-clamp-2 wf-copy" style={{ color: "var(--color-ink-2)" }}>{goal.description}</p>
+        <p className="wf-text-sm line-clamp-2 mb-5" style={{ color: "var(--color-ink-2)" }}>{goal.description}</p>
       )}
 
-      <GoalProgressBar progress={goal.progress} />
+      {/* Progress */}
+      <div className="mb-5">
+        <GoalProgressBar progress={goal.progress} />
+      </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2 wf-text-xs pt-0.5" style={{ color: "var(--color-ink-3)" }}>
+      {/* Meta info */}
+      <div className="flex flex-wrap items-center justify-between gap-3 wf-text-xs mb-5" style={{ color: "var(--color-ink-3)" }}>
         <span>
           {totalMilestones > 0
             ? `${completedMilestones}/${totalMilestones} milestones`
@@ -72,17 +78,18 @@ export default function GoalCard({ goal, onDelete }: GoalCardProps) {
         )}
       </div>
 
-      <div className="flex items-center gap-3 pt-4 border-t" style={{ borderColor: "var(--color-border)" }}>
+      {/* Actions */}
+      <div className="flex items-center gap-4 pt-5 mt-auto border-t" style={{ borderColor: "var(--color-border)" }}>
         <Link
           to={`/goals/${goal.id}`}
-          className="wf-text-xs text-link hover:underline"
+          className="wf-btn wf-btn-secondary text-sm py-2 px-4"
         >
           View details
         </Link>
         {onDelete && (
           <button
             onClick={() => onDelete(goal.id)}
-            className="wf-text-xs hover:underline ml-auto"
+            className="wf-text-sm hover:underline ml-auto"
             style={{ color: "var(--color-error)" }}
           >
             Delete
