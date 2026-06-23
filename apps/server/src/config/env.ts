@@ -41,4 +41,8 @@ export const env = {
   INSIGHTS_CACHE_TTL_HOURS: parseInt(process.env.INSIGHTS_CACHE_TTL_HOURS ?? "24", 10),
   SESSION_RECOMMENDATION_WINDOW_HOURS: parseInt(process.env.SESSION_RECOMMENDATION_WINDOW_HOURS ?? "48", 10),
   DEFAULT_PAGE_SIZE: parseInt(process.env.DEFAULT_PAGE_SIZE ?? "20", 10),
+
+  // Monitoring
+  SENTRY_DSN: process.env.SENTRY_DSN ?? "",
+  APP_VERSION: process.env.APP_VERSION ?? "0.0.0",
 } as const;

@@ -2,9 +2,15 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
+import compression from "compression";
 import path from "path";
 import { fileURLToPath } from "url";
 import { env } from "./config/env.js";
+import { initSentry, Sentry } from "./lib/sentry.js";
+import { logger } from "./lib/logger.js";
+import { requestId } from "./middleware/requestId.js";
+import { requestLogger } from "./middleware/requestLogger.js";
+import { errorHandler } from "./middleware/errorHandler.js";
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import mentorRoutes from "./routes/mentor.js";
@@ -22,9 +28,9 @@ import adminRoutes from "./routes/admin.js";
 import paymentsRoutes from "./routes/payments.js";
 import reportsRoutes from "./routes/reports.js";
 import aiRoutes from "./routes/ai.js";
-import { logger } from "./lib/logger.js";
-import { requestLogger } from "./middleware/requestLogger.js";
-import { errorHandler } from "./middleware/errorHandler.js";
+
+// Initialize Sentry first
+initSentry();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,10 +38,16 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // Trust nginx reverse proxy so express-rate-limit reads the real client IP
-app.set('trust proxy', 1);
+app.set("trust proxy", 1);
+
+// Request ID for tracing
+app.use(requestId);
 
 // Security headers
 app.use(helmet());
+
+// Compression
+app.use(compression());
 
 // CORS – allow frontend origin with credentials
 app.use(
@@ -57,7 +69,26 @@ app.use(requestLogger);
 // Serve static files (uploaded avatars, resources)
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-// Routes
+// API v1 Routes
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/mentor", mentorRoutes);
+app.use("/api/v1/mentee", menteeRoutes);
+app.use("/api/v1/mentors", mentorsRoutes);
+app.use("/api/v1/programs", programsRoutes);
+app.use("/api/v1/availability", availabilityRoutes);
+app.use("/api/v1/bookings", bookingsRoutes);
+app.use("/api/v1/sessions", sessionsRoutes);
+app.use("/api/v1/conversations", conversationsRoutes);
+app.use("/api/v1/reviews", reviewsRoutes);
+app.use("/api/v1/goals", goalsRoutes);
+app.use("/api/v1/resources", resourcesRoutes);
+app.use("/api/v1/admin", adminRoutes);
+app.use("/api/v1/payments", paymentsRoutes);
+app.use("/api/v1/reports", reportsRoutes);
+app.use("/api/v1/ai", aiRoutes);
+
+// Legacy routes (backwards compatibility)
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/mentor", mentorRoutes);
@@ -78,12 +109,43 @@ app.use("/api/ai", aiRoutes);
 
 // Health check
 app.get("/api/health", (_req, res) => {
-  res.json({ status: "ok" });
+  res.json({ status: "ok", version: env.APP_VERSION });
 });
+
+app.get("/api/v1/health", (_req, res) => {
+  res.json({ status: "ok", version: env.APP_VERSION });
+});
+
+// Sentry error handler (captures errors before our handler)
+if (env.SENTRY_DSN) {
+  Sentry.setupExpressErrorHandler(app);
+}
 
 // Global error handler – always return JSON
 app.use(errorHandler);
 
-app.listen(env.PORT, () => {
+const server = app.listen(env.PORT, () => {
   logger.info(`Server running on http://localhost:${env.PORT}`);
 });
+
+// Graceful shutdown
+const shutdown = (signal: string) => {
+  logger.info({ signal }, "Shutdown signal received");
+  server.close((err) => {
+    if (err) {
+      logger.error({ err }, "Error during shutdown");
+      process.exit(1);
+    }
+    logger.info("Server closed gracefully");
+    process.exit(0);
+  });
+
+  // Force exit after 10 seconds
+  setTimeout(() => {
+    logger.error("Forced shutdown after timeout");
+    process.exit(1);
+  }, 10000);
+};
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
