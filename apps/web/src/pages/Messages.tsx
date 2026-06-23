@@ -28,7 +28,7 @@ export default function Messages() {
   const [search, setSearch] = useState("");
   const [otherRating, setOtherRating] = useState<number | null>(null);
   const [reportModalOpen, setReportModalOpen] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   // Load conversations
   useEffect(() => {
@@ -47,8 +47,8 @@ export default function Messages() {
     setLoadingMsgs(true);
     getMessages(activeId)
       .then((d) => {
-        // API returns newest-first; reverse to show oldest first
-        setMessages([...d.messages].reverse());
+        // API returns oldest-first (asc order)
+        setMessages(d.messages);
       })
       .catch(() => {})
       .finally(() => setLoadingMsgs(false));
@@ -61,7 +61,9 @@ export default function Messages() {
 
   // Scroll to bottom when messages change
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   }, [messages]);
 
   // Load active contact's mentor rating (for right panel)
@@ -214,7 +216,7 @@ export default function Messages() {
             </div>
 
             {/* Messages area */}
-            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+            <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
               {loadingMsgs ? (
                 <div className="flex justify-center py-8">
                   <div className="wf-text" style={{ color: "var(--color-ink-3)" }}>Loading...</div>
@@ -228,7 +230,6 @@ export default function Messages() {
                   <MessageBubble key={msg.id} message={msg} isOwn={msg.senderId === user.id} />
                 ))
               )}
-              <div ref={bottomRef} />
             </div>
 
             {/* Input bar */}

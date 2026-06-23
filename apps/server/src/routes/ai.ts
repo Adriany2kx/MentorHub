@@ -624,7 +624,8 @@ router.get("/sessions/:id/agenda", async (req, res) => {
     type AgendaItem = { item: string; rationale: string; estimatedMinutes: number };
     const agenda = await generateJson<AgendaItem[]>(systemInstruction, userPrompt, agendaSchema);
     return res.json({ agenda });
-  } catch {
+  } catch (err) {
+    req.log.error({ err }, "Gemini session-agenda failed");
     return res.status(503).json({ error: "AI service temporarily unavailable" });
   }
 });

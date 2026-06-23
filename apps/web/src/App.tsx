@@ -4,6 +4,7 @@ import { useAuth } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import RouteErrorBoundary from "./components/RouteErrorBoundary";
 import LoadingState from "./components/LoadingState";
+import { useMessageNotifications } from "./hooks/useMessageNotifications";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Landing = lazy(() => import("./pages/Landing"));
@@ -75,10 +76,17 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+/** Background hook that polls for new messages and shows toast notifications */
+function MessageNotifier() {
+  useMessageNotifications();
+  return null;
+}
+
 function App() {
   return (
     <div className="min-h-screen" style={{ background: "var(--color-bg)" }}>
       <Navbar />
+      <MessageNotifier />
 
       <RouteErrorBoundary>
         <Suspense fallback={<RouteFallback />}>
