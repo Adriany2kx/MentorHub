@@ -144,6 +144,16 @@ router.post("/login", loginLimiter, async (req, res) => {
     return;
   }
 
+  if (user.isBanned) {
+    res.status(403).json({ error: "Your account has been banned" });
+    return;
+  }
+
+  if (user.suspendedUntil && user.suspendedUntil > new Date()) {
+    res.status(403).json({ error: `Your account is suspended until ${user.suspendedUntil.toISOString()}` });
+    return;
+  }
+
   const { session: _, token } = await createSession(user.id);
   setCookie(res, token);
 
