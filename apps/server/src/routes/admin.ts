@@ -4,6 +4,7 @@ import { prisma } from "../lib/prisma.js";
 import { hashPassword } from "../lib/hash.js";
 import { requireAuth } from "../middleware/auth.js";
 import { requireAdmin } from "../middleware/auth.js";
+import { auditLog } from "../lib/audit.js";
 
 const router = Router();
 
@@ -209,7 +210,10 @@ router.get("/mentors/pending", async (_req, res) => {
 
 // PATCH /api/admin/mentors/:id/approve — approve a mentor
 router.patch("/mentors/:id/approve", async (req, res) => {
-  const profile = await prisma.mentorProfile.findUnique({ where: { id: req.params.id } });
+  const profile = await prisma.mentorProfile.findUnique({
+    where: { id: req.params.id },
+    include: { user: { select: { email: true } } },
+  });
   if (!profile) return res.status(404).json({ error: "Mentor profile not found" });
 
   const updated = await prisma.mentorProfile.update({
@@ -218,15 +222,37 @@ router.patch("/mentors/:id/approve", async (req, res) => {
     include: { user: { select: { id: true, email: true, firstName: true, lastName: true } } },
   });
 
+  await auditLog({
+    actorId: req.user!.id,
+    action: "MENTOR_APPROVED",
+    targetType: "MentorProfile",
+    targetId: req.params.id,
+    metadata: { userId: profile.userId, email: profile.user.email },
+    req,
+  });
+
   return res.json({ mentor: updated });
 });
 
 // DELETE /api/admin/mentors/:id — reject/remove mentor profile
 router.delete("/mentors/:id", async (req, res) => {
-  const profile = await prisma.mentorProfile.findUnique({ where: { id: req.params.id } });
+  const profile = await prisma.mentorProfile.findUnique({
+    where: { id: req.params.id },
+    include: { user: { select: { email: true } } },
+  });
   if (!profile) return res.status(404).json({ error: "Mentor profile not found" });
 
   await prisma.mentorProfile.delete({ where: { id: req.params.id } });
+
+  await auditLog({
+    actorId: req.user!.id,
+    action: "MENTOR_REJECTED",
+    targetType: "MentorProfile",
+    targetId: req.params.id,
+    metadata: { userId: profile.userId, email: profile.user.email },
+    req,
+  });
+
   return res.json({ message: "Mentor profile removed" });
 });
 
@@ -281,6 +307,16 @@ router.delete("/programs/:id", async (req, res) => {
   if (!program) return res.status(404).json({ error: "Program not found" });
 
   await prisma.program.delete({ where: { id: req.params.id } });
+
+  await auditLog({
+    actorId: req.user!.id,
+    action: "PROGRAM_DELETED",
+    targetType: "Program",
+    targetId: req.params.id,
+    metadata: { title: program.title, mentorId: program.mentorId },
+    req,
+  });
+
   return res.json({ message: "Program deleted" });
 });
 
@@ -298,6 +334,15 @@ router.patch("/users/:id/ban", async (req, res) => {
     select: { id: true, email: true, firstName: true, lastName: true, role: true, isBanned: true },
   });
 
+  await auditLog({
+    actorId: req.user!.id,
+    action: parsed.data.isBanned ? "USER_BANNED" : "USER_UNBANNED",
+    targetType: "User",
+    targetId: req.params.id,
+    metadata: { email: user.email },
+    req,
+  });
+
   return res.json({ user: updated });
 });
 
@@ -313,6 +358,16 @@ router.patch("/users/:id/suspend", async (req, res) => {
     where: { id: req.params.id },
     data: { suspendedUntil: parsed.data.suspendedUntil ? new Date(parsed.data.suspendedUntil) : null },
     select: { id: true, email: true, firstName: true, lastName: true, role: true, suspendedUntil: true },
+  });
+
+  const isSuspending = !!parsed.data.suspendedUntil;
+  await auditLog({
+    actorId: req.user!.id,
+    action: isSuspending ? "USER_SUSPENDED" : "USER_UNSUSPENDED",
+    targetType: "User",
+    targetId: req.params.id,
+    metadata: { email: user.email, suspendedUntil: parsed.data.suspendedUntil },
+    req,
   });
 
   return res.json({ user: updated });
@@ -358,7 +413,10 @@ router.patch("/reports/:id", async (req, res) => {
 
   if (!parsed.success) return res.status(400).json({ error: "Invalid data" });
 
-  const report = await prisma.report.findUnique({ where: { id: req.params.id } });
+  const report = await prisma.report.findUnique({
+    where: { id: req.params.id },
+    include: { reported: { select: { id: true, email: true } } },
+  });
   if (!report) return res.status(404).json({ error: "Report not found" });
 
   const updated = await prisma.report.update({
@@ -370,6 +428,22 @@ router.patch("/reports/:id", async (req, res) => {
       message: { select: { id: true, content: true } },
     },
   });
+
+  // Audit log for resolved/dismissed reports
+  if (parsed.data.status === "RESOLVED" || parsed.data.status === "DISMISSED") {
+    await auditLog({
+      actorId: req.user!.id,
+      action: parsed.data.status === "RESOLVED" ? "REPORT_RESOLVED" : "REPORT_DISMISSED",
+      targetType: "Report",
+      targetId: req.params.id,
+      metadata: {
+        reason: report.reason,
+        reportedUserId: report.reported.id,
+        reportedEmail: report.reported.email,
+      },
+      req,
+    });
+  }
 
   return res.json({ report: updated });
 });

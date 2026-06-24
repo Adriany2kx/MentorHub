@@ -55,7 +55,35 @@ function clearCookie(res: import("express").Response) {
   });
 }
 
-// POST /api/auth/register
+/**
+ * @openapi
+ * /auth/register:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Register a new user account
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email: { type: string, format: email }
+ *               password: { type: string, minLength: 8 }
+ *               recaptchaToken: { type: string }
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user: { $ref: '#/components/schemas/User' }
+ *       400: { description: Validation error }
+ *       409: { description: Email already registered }
+ */
 router.post("/register", registerLimiter, async (req, res) => {
   try {
     const parsed = RegisterBody.safeParse(req.body);
@@ -114,7 +142,35 @@ router.post("/register", registerLimiter, async (req, res) => {
   }
 });
 
-// POST /api/auth/login
+/**
+ * @openapi
+ * /auth/login:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Login with email and password
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email: { type: string, format: email }
+ *               password: { type: string }
+ *               recaptchaToken: { type: string }
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user: { $ref: '#/components/schemas/User' }
+ *       401: { description: Invalid credentials }
+ *       403: { description: Account banned or suspended }
+ */
 router.post("/login", loginLimiter, async (req, res) => {
   const parsed = LoginBody.safeParse(req.body);
   if (!parsed.success) {
@@ -170,7 +226,22 @@ router.post("/login", loginLimiter, async (req, res) => {
   });
 });
 
-// POST /api/auth/logout
+/**
+ * @openapi
+ * /auth/logout:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Logout and revoke session
+ *     responses:
+ *       200:
+ *         description: Logged out successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string }
+ */
 router.post("/logout", async (req, res) => {
   const token = req.cookies[env.COOKIE_NAME] as string | undefined;
   if (token) {
@@ -180,7 +251,26 @@ router.post("/logout", async (req, res) => {
   res.json({ message: "Logged out" });
 });
 
-// GET /api/auth/me
+/**
+ * @openapi
+ * /auth/me:
+ *   get:
+ *     tags: [Auth]
+ *     summary: Get current authenticated user
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Current user data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user: { $ref: '#/components/schemas/User' }
+ *       401: { description: Not authenticated }
+ *       404: { description: User not found }
+ */
 router.get("/me", requireAuth, async (req, res) => {
   const user = await prisma.user.findUnique({
     where: { id: req.userId },

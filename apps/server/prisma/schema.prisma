@@ -401,3 +401,22 @@ model Session {
   @@index([userId])
   @@map("sessions")
 }
+
+// Audit log for admin actions and security events
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  action     String   // USER_BANNED, MENTOR_APPROVED, PAYMENT_REFUNDED, etc.
+  targetType String   // User, MentorProfile, Payment, etc.
+  targetId   String
+  metadata   Json?    // Additional context
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([actorId])
+  @@index([action])
+  @@index([targetType, targetId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

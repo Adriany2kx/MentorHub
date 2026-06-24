@@ -6,11 +6,14 @@ import compression from "compression";
 import path from "path";
 import { fileURLToPath } from "url";
 import { env } from "./config/env.js";
+import { swaggerSpec } from "./config/swagger.js";
+import swaggerUi from "swagger-ui-express";
 import { initSentry, Sentry } from "./lib/sentry.js";
 import { logger } from "./lib/logger.js";
 import { requestId } from "./middleware/requestId.js";
 import { requestLogger } from "./middleware/requestLogger.js";
 import { errorHandler } from "./middleware/errorHandler.js";
+import { noCache, cacheStatic } from "./middleware/cacheHeaders.js";
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import mentorRoutes from "./routes/mentor.js";
@@ -66,8 +69,11 @@ app.use(cookieParser());
 // Structured request logging
 app.use(requestLogger);
 
-// Serve static files (uploaded avatars, resources)
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+// Serve static files (uploaded avatars, resources) with cache headers
+app.use("/uploads", cacheStatic(86400), express.static(path.join(__dirname, "../uploads")));
+
+// Prevent caching of API responses
+app.use("/api", noCache);
 
 // API v1 Routes
 app.use("/api/v1/auth", authRoutes);
@@ -115,6 +121,12 @@ app.get("/api/health", (_req, res) => {
 app.get("/api/v1/health", (_req, res) => {
   res.json({ status: "ok", version: env.APP_VERSION });
 });
+
+// API Documentation (development only)
+if (env.NODE_ENV !== "production") {
+  app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  app.get("/api/docs.json", (_req, res) => res.json(swaggerSpec));
+}
 
 // Sentry error handler (captures errors before our handler)
 if (env.SENTRY_DSN) {
