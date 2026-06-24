@@ -92,8 +92,5 @@ export function createStripeMock() {
   };
 }
 
-export function setupStripeMock(): void {
-  vi.mock("stripe", () => ({
-    default: vi.fn().mockImplementation(() => createStripeMock()),
-  }));
-}
+// Note: vi.mock is now in __tests__/helpers/setup.ts
+// Use createStripeMock() if you need custom mock behavior in specific tests

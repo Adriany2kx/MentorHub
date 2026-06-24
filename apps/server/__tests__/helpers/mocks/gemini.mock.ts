@@ -90,15 +90,5 @@ export function createGeminiMock() {
   };
 }
 
-export function setupGeminiMock(): void {
-  vi.mock("@google/generative-ai", () => ({
-    GoogleGenerativeAI: vi.fn().mockImplementation(() => createGeminiMock()),
-    SchemaType: {
-      STRING: "STRING",
-      NUMBER: "NUMBER",
-      BOOLEAN: "BOOLEAN",
-      ARRAY: "ARRAY",
-      OBJECT: "OBJECT",
-    },
-  }));
-}
+// Note: vi.mock is now in __tests__/helpers/setup.ts
+// Use createGeminiMock() if you need custom mock behavior in specific tests

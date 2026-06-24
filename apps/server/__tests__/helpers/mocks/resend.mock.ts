@@ -41,8 +41,5 @@ export function createResendMock() {
   };
 }
 
-export function setupResendMock(): void {
-  vi.mock("resend", () => ({
-    Resend: vi.fn().mockImplementation(() => createResendMock()),
-  }));
-}
+// Note: vi.mock is now in __tests__/helpers/setup.ts
+// Use createResendMock() if you need custom mock behavior in specific tests

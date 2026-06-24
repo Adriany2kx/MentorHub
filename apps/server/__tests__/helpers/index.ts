@@ -20,18 +20,18 @@ export {
   createPayment,
 } from "./factories/booking.factory.js";
 
-// Mocks
+// Mocks - vi.mock calls are in setup.ts, these are helper functions
 export {
   mockGeminiResponse,
   resetGeminiMock,
-  setupGeminiMock,
+  createGeminiMock,
 } from "./mocks/gemini.mock.js";
 
 export {
   mockStripePaymentIntent,
   setWebhookSignatureValid,
   resetStripeMock,
-  setupStripeMock,
+  createStripeMock,
 } from "./mocks/stripe.mock.js";
 
 export {
@@ -39,5 +39,5 @@ export {
   getSentEmails,
   getLastEmail,
   resetResendMock,
-  setupResendMock,
+  createResendMock,
 } from "./mocks/resend.mock.js";
