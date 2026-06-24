@@ -1,498 +1,1379 @@
-import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { Check } from "lucide-react";
-import { listMentors, listPrograms } from "../lib/api";
-import type { MentorListItem, Program } from "../lib/api";
-import MentorCard from "../components/MentorCard";
-import ProgramCard from "../components/ProgramCard";
-import StarRating from "../components/StarRating";
+import { useEffect, useState, useRef } from "react";
+import { Link } from "react-router-dom";
+import {
+  ArrowRight,
+  Sparkles,
+  Brain,
+  Target,
+  TrendingUp,
+  Star,
+  Clock,
+  Users,
+  CheckCircle2,
+  MessageSquare,
+  Calendar,
+  Zap,
+} from "lucide-react";
+import { listMentors } from "../lib/api";
+import type { MentorListItem } from "../lib/api";
+import { AnimatedCounter } from "../components/animations";
 
-const HERO_SIGNALS = [
-  "Most people book their first session within 72 hours.",
-  "Mentors are usually online in the evening local time.",
-  "Small weekly sessions beat one-off advice every time.",
-];
+/* ════════════════════════════════════════════════════════════════
+   LANDING PAGE — MentorHub
+   Design: Modern Minimalist — clean whites, green accents
+   ════════════════════════════════════════════════════════════════ */
+
+// Scroll reveal hook
+function useScrollReveal() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) {
+      setIsVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -50px 0px" }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return { ref, isVisible };
+}
+
+// Animated section wrapper
+function RevealSection({
+  children,
+  className = "",
+  delay = 0,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  delay?: number;
+}) {
+  const { ref, isVisible } = useScrollReveal();
+
+  return (
+    <div
+      ref={ref}
+      className={className}
+      style={{
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible ? "translateY(0)" : "translateY(28px)",
+        transition: `opacity 700ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, transform 700ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// AI Demo animation component
+function AIDemoAnimation() {
+  const [step, setStep] = useState(0);
+  const steps = [
+    { label: "Analyzing your goals...", icon: Target },
+    { label: "Finding compatible mentors...", icon: Users },
+    { label: "Generating recommendations...", icon: Sparkles },
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStep((s) => (s + 1) % 3);
+    }, 2400);
+    return () => clearInterval(interval);
+  }, []);
+
+  const CurrentIcon = steps[step].icon;
+
+  return (
+    <div
+      style={{
+        background: "var(--color-surface)",
+        border: "1px solid var(--color-border)",
+        borderRadius: "var(--radius-lg)",
+        padding: 32,
+        maxWidth: 400,
+        margin: "0 auto",
+        boxShadow: "var(--shadow-lg)",
+      }}
+    >
+      {/* Fake chat interface */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {/* User message */}
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <div
+            style={{
+              background: "var(--color-teal)",
+              color: "#fff",
+              padding: "12px 16px",
+              borderRadius: "16px 16px 4px 16px",
+              maxWidth: "80%",
+              fontSize: 14,
+            }}
+          >
+            I want to transition from senior engineer to staff level
+          </div>
+        </div>
+
+        {/* AI response */}
+        <div style={{ display: "flex", gap: 10 }}>
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: "50%",
+              background: "linear-gradient(135deg, var(--color-teal) 0%, var(--color-success) 100%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <Brain size={18} style={{ color: "#fff" }} />
+          </div>
+          <div
+            style={{
+              background: "var(--color-bg)",
+              border: "1px solid var(--color-border)",
+              padding: "12px 16px",
+              borderRadius: "4px 16px 16px 16px",
+              flex: 1,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                fontSize: 14,
+                color: "var(--color-teal)",
+                fontWeight: 500,
+              }}
+            >
+              <CurrentIcon
+                size={16}
+                style={{
+                  animation: "pulse 1.5s infinite",
+                }}
+              />
+              <span
+                key={step}
+                style={{
+                  animation: "fadeSlideUp 400ms ease-out",
+                }}
+              >
+                {steps[step].label}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Result preview */}
+        <div
+          style={{
+            marginTop: 8,
+            padding: 16,
+            background: "var(--color-teal-bg)",
+            border: "1px solid var(--color-success-border)",
+            borderRadius: "var(--radius-md)",
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+              color: "var(--color-teal)",
+              marginBottom: 10,
+            }}
+          >
+            Top Match
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: "50%",
+                background: "var(--color-teal-soft)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 16,
+                fontWeight: 600,
+                color: "var(--color-teal)",
+              }}
+            >
+              SK
+            </div>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: "var(--color-ink)" }}>
+                Sarah Kim
+              </div>
+              <div style={{ fontSize: 13, color: "var(--color-muted)" }}>
+                Staff Engineer at Stripe
+              </div>
+            </div>
+            <div
+              style={{
+                marginLeft: "auto",
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+                fontSize: 13,
+                fontWeight: 600,
+                color: "var(--color-success)",
+              }}
+            >
+              <CheckCircle2 size={14} />
+              98% match
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Editorial mentor card
+function MentorCard({ mentor }: { mentor: MentorListItem }) {
+  const name = `${mentor.user.firstName || ""} ${mentor.user.lastName || ""}`.trim() || "Mentor";
+  const initials = name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <Link
+      to={`/mentors/${mentor.id}`}
+      style={{
+        display: "block",
+        background: "var(--color-surface)",
+        border: "1px solid var(--color-border)",
+        borderRadius: "var(--radius-lg)",
+        overflow: "hidden",
+        textDecoration: "none",
+        color: "inherit",
+        transition: "transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease",
+        transform: isHovered ? "translateY(-4px)" : "translateY(0)",
+        boxShadow: isHovered ? "var(--shadow-lg)" : "var(--shadow-card)",
+        borderColor: isHovered ? "var(--color-teal)" : "var(--color-border)",
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Large photo area */}
+      <div
+        style={{
+          aspectRatio: "4/3",
+          background: "linear-gradient(135deg, var(--color-teal-soft) 0%, var(--color-bg) 100%)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        {mentor.user.avatarUrl ? (
+          <img
+            src={mentor.user.avatarUrl}
+            alt={name}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              transition: "transform 400ms ease",
+              transform: isHovered ? "scale(1.05)" : "scale(1)",
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: "50%",
+              background: "var(--color-teal)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 28,
+              fontWeight: 600,
+              color: "#fff",
+            }}
+          >
+            {initials}
+          </div>
+        )}
+
+        {/* Available badge */}
+        <div
+          style={{
+            position: "absolute",
+            top: 12,
+            right: 12,
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            background: "rgba(255,255,255,0.95)",
+            padding: "6px 10px",
+            borderRadius: "var(--radius-full)",
+            fontSize: 12,
+            fontWeight: 500,
+            color: "var(--color-success)",
+            boxShadow: "var(--shadow-sm)",
+          }}
+        >
+          <span
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              background: "var(--color-success)",
+              animation: "pulse 2s infinite",
+            }}
+          />
+          Available
+        </div>
+      </div>
+
+      {/* Info */}
+      <div style={{ padding: 20 }}>
+        <h3
+          style={{
+            fontSize: 18,
+            fontWeight: 600,
+            color: "var(--color-ink)",
+            margin: 0,
+            fontFamily: "var(--font-display)",
+          }}
+        >
+          {name}
+        </h3>
+        <p
+          style={{
+            fontSize: 14,
+            color: "var(--color-muted)",
+            margin: "4px 0 0",
+          }}
+        >
+          {mentor.headline || mentor.expertise[0] || "Experienced Mentor"}
+        </p>
+
+        {/* Hover reveal content */}
+        <div
+          style={{
+            overflow: "hidden",
+            maxHeight: isHovered ? 100 : 0,
+            opacity: isHovered ? 1 : 0,
+            transition: "max-height 300ms ease, opacity 300ms ease, margin-top 300ms ease",
+            marginTop: isHovered ? 12 : 0,
+          }}
+        >
+          <p
+            style={{
+              fontSize: 13,
+              color: "var(--color-ink-2)",
+              lineHeight: 1.5,
+              margin: 0,
+            }}
+          >
+            {mentor.user.bio?.slice(0, 90) || "Expert guidance for your career journey"}...
+          </p>
+        </div>
+
+        {/* Footer */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: 16,
+            paddingTop: 14,
+            borderTop: "1px solid var(--color-border-soft)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <Star
+              size={14}
+              style={{ color: "var(--color-gold)", fill: "var(--color-gold)" }}
+            />
+            <span style={{ fontSize: 13, fontWeight: 500, color: "var(--color-ink)" }}>
+              5.0
+            </span>
+          </div>
+          <span style={{ fontSize: 16, fontWeight: 600, color: "var(--color-ink)" }}>
+            ${mentor.hourlyRate || 75}
+            <span style={{ fontSize: 13, fontWeight: 400, color: "var(--color-muted)" }}>
+              /session
+            </span>
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+// Pricing card
+function PricingCard({
+  title,
+  sessions,
+  price,
+  perSession,
+  features,
+  popular = false,
+}: {
+  title: string;
+  sessions: number;
+  price: number;
+  perSession: number;
+  features: string[];
+  popular?: boolean;
+}) {
+  return (
+    <div
+      style={{
+        background: popular ? "var(--color-teal)" : "var(--color-surface)",
+        border: popular ? "none" : "1px solid var(--color-border)",
+        borderRadius: "var(--radius-lg)",
+        padding: 28,
+        position: "relative",
+        boxShadow: popular ? "var(--shadow-lg)" : "var(--shadow-card)",
+        transform: popular ? "scale(1.02)" : "scale(1)",
+      }}
+    >
+      {popular && (
+        <div
+          style={{
+            position: "absolute",
+            top: -12,
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "var(--color-gold)",
+            color: "#fff",
+            fontSize: 11,
+            fontWeight: 600,
+            textTransform: "uppercase",
+            letterSpacing: "0.08em",
+            padding: "5px 14px",
+            borderRadius: "var(--radius-full)",
+          }}
+        >
+          Most Popular
+        </div>
+      )}
+
+      <div
+        style={{
+          fontSize: 12,
+          fontWeight: 600,
+          textTransform: "uppercase",
+          letterSpacing: "0.08em",
+          color: popular ? "rgba(255,255,255,0.7)" : "var(--color-muted)",
+          marginBottom: 8,
+        }}
+      >
+        {title}
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          gap: 4,
+          marginBottom: 4,
+        }}
+      >
+        <span
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: 40,
+            fontWeight: 400,
+            color: popular ? "#fff" : "var(--color-ink)",
+          }}
+        >
+          ${price}
+        </span>
+        <span
+          style={{
+            fontSize: 14,
+            color: popular ? "rgba(255,255,255,0.7)" : "var(--color-muted)",
+          }}
+        >
+          total
+        </span>
+      </div>
+
+      <div
+        style={{
+          fontSize: 14,
+          color: popular ? "rgba(255,255,255,0.85)" : "var(--color-ink-2)",
+          marginBottom: 20,
+        }}
+      >
+        {sessions} sessions · ${perSession}/each
+      </div>
+
+      <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+        {features.map((f) => (
+          <li
+            key={f}
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 10,
+              fontSize: 14,
+              color: popular ? "rgba(255,255,255,0.9)" : "var(--color-ink-2)",
+              marginBottom: 10,
+            }}
+          >
+            <CheckCircle2
+              size={16}
+              style={{
+                color: popular ? "rgba(255,255,255,0.9)" : "var(--color-success)",
+                flexShrink: 0,
+                marginTop: 2,
+              }}
+            />
+            {f}
+          </li>
+        ))}
+      </ul>
+
+      <Link
+        to="/programs"
+        style={{
+          display: "block",
+          textAlign: "center",
+          marginTop: 20,
+          padding: "12px 20px",
+          borderRadius: "var(--radius-sm)",
+          fontSize: 14,
+          fontWeight: 600,
+          textDecoration: "none",
+          background: popular ? "#fff" : "var(--color-teal)",
+          color: popular ? "var(--color-teal)" : "#fff",
+          transition: "transform 150ms ease, box-shadow 150ms ease",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "translateY(-2px)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "translateY(0)";
+        }}
+      >
+        View Programs
+      </Link>
+    </div>
+  );
+}
 
 export default function Landing() {
-  const [featuredMentors, setFeaturedMentors] = useState<MentorListItem[]>([]);
-  const [featuredPrograms, setFeaturedPrograms] = useState<Program[]>([]);
-  const [search, setSearch] = useState("");
-  const [heroSignalIndex, setHeroSignalIndex] = useState(0);
-  const navigate = useNavigate();
+  const [mentors, setMentors] = useState<MentorListItem[]>([]);
 
   useEffect(() => {
     listMentors({ limit: 4 })
-      .then((d) => setFeaturedMentors(d.mentors))
-      .catch(() => {});
-    listPrograms({ limit: 3 })
-      .then((d) => setFeaturedPrograms(d.programs))
+      .then((d) => setMentors(d.mentors))
       .catch(() => {});
   }, []);
-
-  useEffect(() => {
-    const reveals = document.querySelectorAll(".wf-reveal:not(.is-visible)");
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0, rootMargin: "0px 0px -60px 0px" }
-    );
-    reveals.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, [featuredMentors, featuredPrograms]);
-
-  useEffect(() => {
-    const interval = window.setInterval(() => {
-      setHeroSignalIndex((current) => (current + 1) % HERO_SIGNALS.length);
-    }, 3200);
-
-    return () => window.clearInterval(interval);
-  }, []);
-
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    navigate(`/mentors${search.trim() ? `?search=${encodeURIComponent(search.trim())}` : ""}`);
-  }
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--color-bg)" }}>
-
-      {/* HERO */}
-      <section style={{ background: "var(--color-hero-bg)", borderBottom: "1px solid rgba(255,255,255,0.08)", position: "relative", overflow: "hidden" }}>
-        {/* Organic warm blob — Nature Distilled accent */}
-        <div aria-hidden="true" className="wf-hero-drift" style={{
-          position: "absolute", top: "-120px", right: "-80px",
-          width: "480px", height: "480px",
-          background: "rgba(105,168,154,0.2)",
-          borderRadius: "60% 40% 70% 30% / 50% 60% 40% 50%",
-          pointerEvents: "none",
-        }} />
-        <div aria-hidden="true" className="wf-hero-drift-alt" style={{
-          position: "absolute", bottom: "-160px", left: "-120px",
-          width: "460px", height: "460px",
-          background: "rgba(201,110,74,0.24)",
-          borderRadius: "58% 42% 35% 65% / 40% 35% 65% 60%",
-          pointerEvents: "none",
-        }} />
-        <div className="wf-page py-24 lg:py-28 grid grid-cols-1 lg:grid-cols-[1.25fr_0.75fr] gap-10 lg:gap-12 items-end" style={{ position: "relative" }}>
-          <div>
-            <h1 className="hero-enter" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(40px, 5vw, 62px)", fontWeight: 450, color: "#FFFFFF", lineHeight: 1.08, letterSpacing: "-0.012em", maxWidth: 820, marginBottom: 20, animationDelay: "0ms" }}>
-              Whatever you studied, your career deserves
-              <em style={{ fontStyle: "italic", fontWeight: 420, color: "#A5B4FC", marginLeft: 8 }}>
-                calm, expert guidance.
-              </em>
-            </h1>
-            <p className="wf-text max-w-xl mb-9 hero-enter" style={{ color: "rgba(255,255,255,0.72)", fontSize: 17, lineHeight: 1.72, animationDelay: "80ms" }}>
-              Connect with mentors across law, medicine, finance, education, tech, and beyond — people who've already walked your path.
-              Practical guidance, structured programs, and momentum you can feel.
-            </p>
-
-            <div className="wf-glass-panel hero-enter p-4 sm:p-5 max-w-2xl" style={{ animationDelay: "160ms" }}>
-              <div className="wf-live-signal" aria-live="polite">
-                <span className="wf-live-dot" aria-hidden="true" />
-                <span key={heroSignalIndex} className="wf-rotating-copy">
-                  {HERO_SIGNALS[heroSignalIndex]}
-                </span>
-              </div>
-              <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3 mb-4">
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search by skill, role or industry..."
-                  style={{
-                    flex: 1,
-                    background: "rgba(255,255,255,0.14)",
-                    border: "1px solid rgba(255,255,255,0.24)",
-                    borderRadius: "var(--radius-sm)",
-                    padding: "10px 14px",
-                    fontSize: 16,
-                    color: "#fff",
-                    outline: "none",
-                  }}
-                  onFocus={e => (e.target.style.borderColor = "rgba(255,255,255,0.5)")}
-                  onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.24)")}
-                />
-                <button type="submit" className="wf-btn wf-btn-primary wf-btn-mentor-glow" style={{ flexShrink: 0 }}>
-                  Find a Mentor
-                </button>
-              </form>
-
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="wf-text-xs" style={{ color: "rgba(255,255,255,0.54)" }}>Try:</span>
-                {["solicitor", "chartered accountant", "nursing", "marketing", "career change"].map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    className="wf-suggestion-pill"
-                    onClick={() => navigate(`/mentors?search=${encodeURIComponent(s)}`)}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="hero-enter" style={{ animationDelay: "240ms" }}>
-            <div className="wf-glass-panel p-5 sm:p-6" style={{ color: "#fff" }}>
-              <p className="wf-eyebrow mb-3" style={{ color: "rgba(255,255,255,0.68)", letterSpacing: "0.09em" }}>Momentum snapshot</p>
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                <div style={{ border: "1px solid rgba(255,255,255,0.18)", borderRadius: 10, padding: "10px 12px", background: "rgba(255,255,255,0.08)" }}>
-                  <p style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.1 }}>4.9</p>
-                  <p className="wf-text-xs" style={{ color: "rgba(255,255,255,0.72)" }}>avg mentor rating</p>
-                </div>
-                <div style={{ border: "1px solid rgba(255,255,255,0.18)", borderRadius: 10, padding: "10px 12px", background: "rgba(255,255,255,0.08)" }}>
-                  <p style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.1 }}>72h</p>
-                  <p className="wf-text-xs" style={{ color: "rgba(255,255,255,0.72)" }}>typical first booking</p>
-                </div>
-              </div>
-              <p className="wf-text-sm" style={{ color: "rgba(255,255,255,0.78)", lineHeight: 1.55 }}>
-                For every graduate, in every field — with a tone that stays human, not corporate.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-
-      {/* TRUST SIGNALS */}
-      <section style={{ background: "var(--color-surface)", borderBottom: "1px solid var(--color-border)" }}>
-        <div className="wf-page py-6 wf-reveal">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-            {[
-              "Every mentor vetted by hand",
-              "Private & confidential sessions",
-              "No minimum commitment",
-            ].map((claim) => (
-              <div key={claim} className="wf-trust-card flex items-center gap-2.5">
-                <Check size={16} style={{ color: "var(--color-blue)", flexShrink: 0 }} aria-hidden="true" />
-                <span className="wf-text-sm font-medium" style={{ color: "var(--color-ink)", lineHeight: 1.45 }}>{claim}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* BROWSE BY FIELD */}
-      <section style={{ borderBottom: "1px solid var(--color-border)" }}>
-        <div className="wf-page py-16 wf-reveal">
-          <div className="mb-10">
-            <p className="wf-eyebrow mb-2">Browse by field</p>
-            <h2 style={{
-              fontFamily: "var(--font-display), serif",
-              fontSize: "clamp(28px, 3vw, 38px)",
-              lineHeight: 1.2,
-              letterSpacing: "-0.02em",
-              color: "var(--color-ink)",
-              maxWidth: 540,
-            }}>
-              Find a mentor in your industry
-            </h2>
-            <p className="wf-text mt-3" style={{ color: "var(--color-ink-2)", maxWidth: 480 }}>
-              Tap a field to browse mentors with direct experience in your area.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            {[
-              { icon: "⚖️", label: "Law & Legal",          description: "Solicitors, barristers, legal execs and in-house counsel", query: "law" },
-              { icon: "🏥", label: "Healthcare",            description: "Doctors, nurses, allied health and NHS careers",            query: "healthcare" },
-              { icon: "💰", label: "Finance & Accounting",  description: "Chartered accountancy, investment banking, financial planning", query: "finance" },
-              { icon: "📚", label: "Education",             description: "Teaching, educational leadership and academia",             query: "education" },
-              { icon: "📣", label: "Marketing & Comms",     description: "Brand strategy, PR, digital marketing and content",        query: "marketing" },
-              { icon: "🏗️", label: "Engineering",           description: "Civil, mechanical, electrical and structural engineers",    query: "engineering" },
-              { icon: "💻", label: "Tech & Software",       description: "Developers, data scientists, product and UX professionals", query: "technology" },
-              { icon: "🏢", label: "Business & Strategy",   description: "Consulting, operations, entrepreneurship and management",  query: "business" },
-              { icon: "🎨", label: "Creative & Design",     description: "Graphic design, architecture, fashion and arts careers",   query: "design" },
-              { icon: "🌿", label: "Environment & Science", description: "Research, sustainability, ecology and STEM careers",       query: "science" },
-            ].map((cat) => (
-              <button
-                key={cat.label}
-                type="button"
-                className="wf-trust-card text-left"
-                style={{ cursor: "pointer", display: "flex", flexDirection: "column", gap: 6 }}
-                onClick={() => navigate(`/mentors?search=${encodeURIComponent(cat.query)}`)}
-              >
-                <span style={{ fontSize: 22, lineHeight: 1 }} aria-hidden="true">{cat.icon}</span>
-                <span className="wf-text-sm font-semibold" style={{ color: "var(--color-ink)", lineHeight: 1.3 }}>
-                  {cat.label}
-                </span>
-                <span className="wf-text-xs" style={{ color: "var(--color-ink-3)", lineHeight: 1.4 }}>
-                  {cat.description}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* VALUE PROPS */}
-      <section style={{ borderBottom: "1px solid var(--color-border)" }}>
-        <div className="wf-page py-20 wf-reveal">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-12 lg:gap-20 items-start">
-            {/* Left: editorial display heading */}
-            <div style={{ position: "sticky", top: 32 }}>
-              <h2 style={{
-                fontFamily: "var(--font-display), serif",
-                fontSize: "clamp(30px, 3.5vw, 44px)",
-                lineHeight: 1.2,
-                letterSpacing: "-0.02em",
-                color: "var(--color-ink)",
-                marginBottom: 16,
-              }}>
-                Built around your growth
-              </h2>
-              <p className="wf-text" style={{ color: "var(--color-ink-2)", maxWidth: 320 }}>
-                Everything you need to find the right mentor in your field and make real progress — whatever industry you're heading into.
-              </p>
-            </div>
-            {/* Right: feature list — no cards, spacing creates grouping */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10">
-              {[
-                { title: "Verified Mentors", text: "Every mentor is reviewed and approved before joining the platform." },
-                { title: "Flexible Scheduling", text: "Book sessions that fit your timezone and weekly rhythm." },
-                { title: "Secure Payments", text: "Pay safely per session or per program. No hidden fees." },
-                { title: "Goal Tracking", text: "Set milestones and track your growth alongside your mentor." },
-              ].map((vp) => (
-                <div key={vp.title} style={{ paddingTop: 20, borderTop: "1px solid var(--color-border)" }}>
-                  <h3 className="wf-h3 mb-2">{vp.title}</h3>
-                  <p className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>{vp.text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* HOW IT WORKS */}
-      <section style={{ background: "var(--color-surface)", borderBottom: "1px solid var(--color-border)" }}>
-        <div className="wf-page py-16 wf-reveal">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-12 lg:gap-20 items-start">
-            {/* Left: sticky heading */}
-            <div style={{ position: "sticky", top: 32 }}>
-              <h2 style={{
-                fontFamily: "var(--font-display), serif",
-                fontSize: "clamp(28px, 3vw, 40px)",
-                lineHeight: 1.2,
-                letterSpacing: "-0.02em",
-                color: "var(--color-ink)",
-                marginBottom: 12,
-              }}>
-                From search to progress
-              </h2>
-              <p className="wf-text" style={{ color: "var(--color-ink-2)", maxWidth: 280 }}>
-                Four steps. No onboarding maze.
-              </p>
-            </div>
-            {/* Right: stacked step rows — not a grid */}
-            <div>
-              {[
-                { n: "1", title: "Find the right mentor", text: "Search by field, role, or skill — from accountancy to zoology. Filter by price and availability. Every profile includes real reviews from real mentees." },
-                { n: "2", title: "Book a session or program", text: "A single 60-minute session to test the fit, or commit to a structured program with clear outcomes and milestones." },
-                { n: "3", title: "Meet on your schedule", text: "Sessions happen where you prefer — video, audio, or async. Your mentor comes prepared." },
-                { n: "4", title: "Track your growth", text: "Set goals, mark milestones, and review your progress over time. The work doesn't disappear after the session ends." },
-              ].map((s, i, arr) => (
-                <div
-                  key={s.n}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "52px 1fr",
-                    columnGap: 28,
-                    alignItems: "start",
-                    paddingTop: i === 0 ? 4 : 28,
-                    paddingBottom: 28,
-                    borderBottom: i < arr.length - 1 ? "1px solid var(--color-border)" : "none",
-                  }}
-                >
-                  <span style={{
-                    fontFamily: "var(--font-display), serif",
-                    fontSize: 48,
-                    fontWeight: 300,
-                    lineHeight: 1,
-                    letterSpacing: "-0.04em",
-                    color: "var(--color-blue)",
-                    opacity: 0.38,
-                    userSelect: "none",
-                    marginTop: -4,
-                  }}>
-                    {s.n}
-                  </span>
-                  <div>
-                    <h3 className="wf-h3 mb-1.5">{s.title}</h3>
-                    <p className="wf-text-sm" style={{ color: "var(--color-ink-2)", lineHeight: 1.6 }}>{s.text}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FEATURED MENTORS */}
-      {featuredMentors.length > 0 && (
-        <section style={{ borderBottom: "1px solid var(--color-border)" }}>
-          <div className="wf-page py-16 wf-reveal">
-            <div className="flex items-end justify-between mb-8">
-              <div>
-                <h2 className="wf-h2">Meet our mentors</h2>
-                <p className="wf-text-sm mt-1" style={{ color: "var(--color-ink-2)" }}>Experienced professionals across every field, ready to help you grow.</p>
-              </div>
-              <Link to="/mentors" className="wf-btn wf-btn-secondary">
-                Browse all
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {featuredMentors.map((mentor) => (
-                <MentorCard key={mentor.id} mentor={mentor} />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* POPULAR PROGRAMS */}
-      {featuredPrograms.length > 0 && (
-        <section style={{ background: "var(--color-surface)", borderBottom: "1px solid var(--color-border)" }}>
-          <div className="wf-page py-12 wf-reveal">
-            <div className="flex items-end justify-between mb-8">
-              <div>
-                <h2 className="wf-h2">Popular programs</h2>
-                <p className="wf-text-sm mt-1" style={{ color: "var(--color-ink-2)" }}>Structured paths with clear outcomes.</p>
-              </div>
-              <Link to="/programs" className="wf-btn wf-btn-secondary">
-                View all
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {featuredPrograms.map((program) => (
-                <ProgramCard key={program.id} program={program} />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* TESTIMONIALS */}
-      <section style={{ borderBottom: "1px solid var(--color-border)" }}>
-        <div className="wf-page py-20 wf-reveal">
-          <h2 className="wf-h2 mb-12">What mentees say</h2>
-
-          {/* Featured quote — large, editorial, no container */}
-          <div style={{ marginBottom: 48, maxWidth: 700 }}>
-            <StarRating value={5} readonly size="sm" />
-            <p style={{
-              fontFamily: "var(--font-display), serif",
-              fontSize: "clamp(20px, 2.5vw, 26px)",
-              lineHeight: 1.55,
-              fontStyle: "italic",
-              color: "var(--color-ink)",
-              margin: "16px 0",
-            }}>
-              "Within two months I had a clear plan for my training pathway and an NHS role lined up. I didn't expect this level of practical support."
-            </p>
-            <p className="wf-text-sm">
-              <span style={{ fontWeight: 600 }}>Amara O.</span>
-              <span style={{ color: "var(--color-ink-3)" }}> — Newly Qualified Doctor</span>
-            </p>
-          </div>
-
-          {/* Supporting quotes — two columns, rule dividers only */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {[
-              { quote: "My mentor helped me navigate the SQE and negotiate my first training contract. Worth every session.", name: "James R.", role: "Trainee Solicitor" },
-              { quote: "I finally understand the route into chartered accountancy. Having someone explain the ICAEW pathway from experience made all the difference.", name: "Priya N.", role: "Graduate Accountant" },
-            ].map((t) => (
-              <div key={t.name} style={{ paddingTop: 24, borderTop: "1px solid var(--color-border)" }}>
-                <p className="wf-text" style={{ fontStyle: "italic", color: "var(--color-ink-2)", marginBottom: 12 }}>
-                  "{t.quote}"
-                </p>
-                <p className="wf-text-sm">
-                  <span style={{ fontWeight: 600 }}>{t.name}</span>
-                  <span style={{ color: "var(--color-ink-3)" }}> — {t.role}</span>
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* BOTTOM CTA */}
-      <section style={{ background: "var(--color-hero-bg)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-        <div className="wf-page py-24 text-center wf-reveal" style={{ position: "relative", overflow: "hidden" }}>
-          <div aria-hidden="true" style={{ position: "absolute", top: "-90px", left: "50%", transform: "translateX(-50%)", width: 420, height: 240, background: "rgba(105,168,154,0.26)", borderRadius: 9999, pointerEvents: "none", filter: "blur(36px)" }} />
-          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(30px, 4vw, 44px)", fontWeight: 500, color: "#fff", letterSpacing: "-0.015em", marginBottom: 12, position: "relative" }}>
-            Start your journey today
-          </h2>
-          <p className="wf-text mb-8 max-w-md mx-auto" style={{ color: "rgba(255,255,255,0.6)" }}>
-            Join graduates from every field growing with MentorHub. Sign up free — no card required.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link to="/register" className="wf-btn wf-btn-primary">
-              Get started free
-            </Link>
-            <Link
-              to="/mentors"
-              className="wf-btn"
+    <main style={{ background: "var(--color-bg)" }}>
+      {/* ══════════════════════════════════════════════════════════════
+          HERO SECTION
+      ══════════════════════════════════════════════════════════════ */}
+      <section
+        style={{
+          minHeight: "85vh",
+          display: "flex",
+          alignItems: "center",
+          paddingTop: 40,
+          paddingBottom: 80,
+        }}
+      >
+        <div className="wf-page" style={{ width: "100%" }}>
+          <div
+            style={{
+              maxWidth: 800,
+              margin: "0 auto",
+              textAlign: "center",
+            }}
+          >
+            {/* Eyebrow */}
+            <div
+              className="hero-enter"
               style={{
-                background: "rgba(255,255,255,0.08)",
-                border: "1px solid rgba(255,255,255,0.2)",
-                color: "#fff",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: "var(--color-teal-bg)",
+                border: "1px solid var(--color-success-border)",
+                padding: "8px 16px",
+                borderRadius: "var(--radius-full)",
+                marginBottom: 28,
+                animationDelay: "100ms",
               }}
             >
-              Browse mentors
-            </Link>
+              <Sparkles size={14} style={{ color: "var(--color-teal)" }} />
+              <span style={{ fontSize: 13, fontWeight: 500, color: "var(--color-teal)" }}>
+                AI-powered mentor matching
+              </span>
+            </div>
+
+            {/* Main headline */}
+            <h1
+              className="hero-enter"
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(2.75rem, 6vw, 4.25rem)",
+                fontWeight: 400,
+                lineHeight: 1.08,
+                letterSpacing: "-0.025em",
+                color: "var(--color-ink)",
+                margin: 0,
+                animationDelay: "200ms",
+              }}
+            >
+              Feeling stuck?
+              <br />
+              <span style={{ fontStyle: "italic", color: "var(--color-teal)" }}>
+                Talk to someone who&apos;s been there.
+              </span>
+            </h1>
+
+            {/* Subheadline */}
+            <p
+              className="hero-enter"
+              style={{
+                fontSize: 19,
+                lineHeight: 1.6,
+                color: "var(--color-ink-2)",
+                margin: "24px auto 0",
+                maxWidth: 540,
+                animationDelay: "300ms",
+              }}
+            >
+              Book 1:1 sessions with industry leaders. Get the clarity, accountability, and insider
+              knowledge that moves your career forward.
+            </p>
+
+            {/* CTA buttons */}
+            <div
+              className="hero-enter"
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                gap: 14,
+                marginTop: 36,
+                flexWrap: "wrap",
+                animationDelay: "400ms",
+              }}
+            >
+              <Link
+                to="/mentors"
+                className="wf-btn wf-btn-primary"
+                style={{
+                  padding: "14px 28px",
+                  fontSize: 15,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                Find Your Mentor
+                <ArrowRight size={18} />
+              </Link>
+              <Link
+                to="/register?role=mentor"
+                className="wf-btn wf-btn-secondary"
+                style={{ padding: "14px 28px", fontSize: 15 }}
+              >
+                Become a Mentor
+              </Link>
+            </div>
+
+            {/* Social proof */}
+            <div
+              className="hero-enter"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 24,
+                marginTop: 48,
+                flexWrap: "wrap",
+                animationDelay: "500ms",
+              }}
+            >
+              {/* Avatar stack */}
+              <div style={{ display: "flex" }}>
+                {["JL", "SK", "MC", "AP", "RK"].map((initials, i) => (
+                  <div
+                    key={initials}
+                    style={{
+                      width: 38,
+                      height: 38,
+                      borderRadius: "50%",
+                      background:
+                        i % 2 === 0 ? "var(--color-teal-soft)" : "var(--color-border-soft)",
+                      border: "2.5px solid var(--color-bg)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: i % 2 === 0 ? "var(--color-teal)" : "var(--color-ink-3)",
+                      marginLeft: i > 0 ? -12 : 0,
+                    }}
+                  >
+                    {initials}
+                  </div>
+                ))}
+              </div>
+
+              <div
+                style={{
+                  height: 32,
+                  width: 1,
+                  background: "var(--color-border)",
+                }}
+              />
+
+              <div style={{ textAlign: "left" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                    fontSize: 15,
+                    fontWeight: 600,
+                    color: "var(--color-ink)",
+                  }}
+                >
+                  <Star
+                    size={15}
+                    style={{ color: "var(--color-gold)", fill: "var(--color-gold)" }}
+                  />
+                  4.9 average rating
+                </div>
+                <div style={{ fontSize: 13, color: "var(--color-muted)", marginTop: 2 }}>
+                  from 38,000+ sessions
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer style={{ background: "var(--color-surface)", borderTop: "1px solid var(--color-border)" }}>
-        <div className="wf-page py-10">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-10">
-            <div>
-              <p className="wf-eyebrow mb-4">Platform</p>
-              <ul className="space-y-2">
-                <li><Link to="/mentors" className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>Find Mentors</Link></li>
-                <li><Link to="/programs" className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>Programs</Link></li>
-                <li><Link to="/register" className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>Become a Mentor</Link></li>
-              </ul>
+      {/* ══════════════════════════════════════════════════════════════
+          AI FEATURES SECTION
+      ══════════════════════════════════════════════════════════════ */}
+      <section
+        style={{
+          background: "var(--color-surface)",
+          borderTop: "1px solid var(--color-border)",
+          borderBottom: "1px solid var(--color-border)",
+          padding: "80px 0",
+        }}
+      >
+        <div className="wf-page">
+          <RevealSection>
+            <div style={{ textAlign: "center", marginBottom: 56 }}>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  color: "var(--color-teal)",
+                  marginBottom: 12,
+                }}
+              >
+                <Zap size={14} />
+                AI-Powered
+              </div>
+              <h2 className="wf-h1" style={{ margin: 0 }}>
+                Smarter matching. Faster growth.
+              </h2>
+              <p
+                style={{
+                  fontSize: 17,
+                  color: "var(--color-ink-2)",
+                  marginTop: 16,
+                  maxWidth: 560,
+                  marginLeft: "auto",
+                  marginRight: "auto",
+                }}
+              >
+                Our AI analyzes your goals, experience, and learning style to find mentors who can
+                actually help you get where you want to go.
+              </p>
             </div>
-            <div>
-              <p className="wf-eyebrow mb-4">Resources</p>
-              <ul className="space-y-2">
-                <li><Link to="/resources" className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>Resource Library</Link></li>
-                <li><Link to="/goals" className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>Goal Tracker</Link></li>
-              </ul>
+          </RevealSection>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+              gap: 48,
+              alignItems: "center",
+            }}
+          >
+            {/* Left: AI Demo */}
+            <RevealSection delay={100}>
+              <AIDemoAnimation />
+            </RevealSection>
+
+            {/* Right: Feature list */}
+            <RevealSection delay={200}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+                {[
+                  {
+                    icon: Brain,
+                    title: "Smart Matching",
+                    desc: "AI analyzes 50+ factors to find mentors aligned with your specific goals and career stage.",
+                  },
+                  {
+                    icon: MessageSquare,
+                    title: "Session Summaries",
+                    desc: "Get AI-generated action items and key takeaways after every session.",
+                  },
+                  {
+                    icon: TrendingUp,
+                    title: "Progress Insights",
+                    desc: "Track your growth with AI-powered analysis of your goals and milestones.",
+                  },
+                ].map((f) => (
+                  <div key={f.title} style={{ display: "flex", gap: 16 }}>
+                    <div
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: "var(--radius-md)",
+                        background: "var(--color-teal-bg)",
+                        border: "1px solid var(--color-success-border)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <f.icon size={22} style={{ color: "var(--color-teal)" }} />
+                    </div>
+                    <div>
+                      <h3
+                        style={{
+                          fontSize: 17,
+                          fontWeight: 600,
+                          color: "var(--color-ink)",
+                          margin: 0,
+                        }}
+                      >
+                        {f.title}
+                      </h3>
+                      <p
+                        style={{
+                          fontSize: 14,
+                          color: "var(--color-ink-2)",
+                          margin: "6px 0 0",
+                          lineHeight: 1.55,
+                        }}
+                      >
+                        {f.desc}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </RevealSection>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          FEATURED MENTORS
+      ══════════════════════════════════════════════════════════════ */}
+      <section style={{ padding: "80px 0" }}>
+        <div className="wf-page">
+          <RevealSection>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-end",
+                marginBottom: 40,
+                flexWrap: "wrap",
+                gap: 16,
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.1em",
+                    color: "var(--color-teal)",
+                    marginBottom: 10,
+                  }}
+                >
+                  Featured Mentors
+                </div>
+                <h2 className="wf-h1" style={{ margin: 0 }}>
+                  Learn from the best
+                </h2>
+              </div>
+              <Link
+                to="/mentors"
+                className="wf-btn wf-btn-secondary"
+                style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+              >
+                View all mentors <ArrowRight size={16} />
+              </Link>
             </div>
-            <div>
-              <p className="wf-eyebrow mb-4">Account</p>
-              <ul className="space-y-2">
-                <li><Link to="/login" className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>Log In</Link></li>
-                <li><Link to="/register" className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>Sign Up</Link></li>
-                <li><Link to="/forgot-password" className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>Reset Password</Link></li>
-              </ul>
+          </RevealSection>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+              gap: 24,
+            }}
+          >
+            {mentors.length > 0
+              ? mentors.map((m, i) => (
+                  <RevealSection key={m.id} delay={i * 80}>
+                    <MentorCard mentor={m} />
+                  </RevealSection>
+                ))
+              : Array.from({ length: 4 }).map((_, i) => (
+                  <RevealSection key={i} delay={i * 80}>
+                    <div
+                      style={{
+                        background: "var(--color-surface)",
+                        border: "1px solid var(--color-border)",
+                        borderRadius: "var(--radius-lg)",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <div
+                        className="wf-skeleton"
+                        style={{ aspectRatio: "4/3" }}
+                      />
+                      <div style={{ padding: 20 }}>
+                        <div
+                          className="wf-skeleton wf-skeleton-title"
+                          style={{ width: "70%", marginBottom: 8 }}
+                        />
+                        <div
+                          className="wf-skeleton wf-skeleton-text"
+                          style={{ width: "50%" }}
+                        />
+                      </div>
+                    </div>
+                  </RevealSection>
+                ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          PRICING SECTION
+      ══════════════════════════════════════════════════════════════ */}
+      <section
+        style={{
+          background: "var(--color-surface)",
+          borderTop: "1px solid var(--color-border)",
+          padding: "80px 0",
+        }}
+      >
+        <div className="wf-page">
+          <RevealSection>
+            <div style={{ textAlign: "center", marginBottom: 56 }}>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  color: "var(--color-teal)",
+                  marginBottom: 12,
+                }}
+              >
+                <Calendar size={14} />
+                Program Packages
+              </div>
+              <h2 className="wf-h1" style={{ margin: 0 }}>
+                Invest in your growth
+              </h2>
+              <p
+                style={{
+                  fontSize: 17,
+                  color: "var(--color-ink-2)",
+                  marginTop: 16,
+                  maxWidth: 540,
+                  marginLeft: "auto",
+                  marginRight: "auto",
+                }}
+              >
+                Multi-session programs provide structured guidance and accountability to help you
+                reach your goals faster.
+              </p>
             </div>
-            <div>
-              <p className="wf-eyebrow mb-4">Company</p>
-              <ul className="space-y-2">
-                <li><Link to="/about" className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>About</Link></li>
-                <li><Link to="/privacy" className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>Privacy</Link></li>
-                <li><Link to="/terms" className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>Terms</Link></li>
-              </ul>
+          </RevealSection>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: 24,
+              maxWidth: 960,
+              margin: "0 auto",
+            }}
+          >
+            <RevealSection delay={100}>
+              <PricingCard
+                title="Starter"
+                sessions={2}
+                price={150}
+                perSession={75}
+                features={[
+                  "2 one-hour sessions",
+                  "Goal setting workshop",
+                  "Action plan document",
+                  "Email follow-up",
+                ]}
+              />
+            </RevealSection>
+
+            <RevealSection delay={200}>
+              <PricingCard
+                title="Accelerator"
+                sessions={4}
+                price={280}
+                perSession={70}
+                popular
+                features={[
+                  "4 one-hour sessions",
+                  "Bi-weekly check-ins",
+                  "AI progress tracking",
+                  "Priority scheduling",
+                  "Resource library access",
+                ]}
+              />
+            </RevealSection>
+
+            <RevealSection delay={300}>
+              <PricingCard
+                title="Transformation"
+                sessions={8}
+                price={520}
+                perSession={65}
+                features={[
+                  "8 one-hour sessions",
+                  "Weekly check-ins",
+                  "Unlimited messaging",
+                  "Career roadmap document",
+                  "Interview prep support",
+                ]}
+              />
+            </RevealSection>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          STATS BAND
+      ══════════════════════════════════════════════════════════════ */}
+      <section style={{ background: "var(--color-teal)", padding: "56px 0" }}>
+        <div className="wf-page">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+              gap: 40,
+              textAlign: "center",
+            }}
+          >
+            {[
+              { icon: Users, value: 12000, label: "Mentees guided" },
+              { icon: Star, value: 1400, label: "Active mentors" },
+              { icon: Clock, value: 38000, label: "Sessions completed" },
+              { icon: Target, value: 60, label: "Industries covered" },
+            ].map((stat) => (
+              <div key={stat.label}>
+                <stat.icon
+                  size={24}
+                  style={{ color: "rgba(255,255,255,0.6)", marginBottom: 12 }}
+                />
+                <div
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontSize: 38,
+                    fontWeight: 400,
+                    color: "#fff",
+                  }}
+                >
+                  <AnimatedCounter
+                    end={stat.value}
+                    duration={2000}
+                    suffix="+"
+                  />
+                </div>
+                <div
+                  style={{
+                    fontSize: 14,
+                    color: "rgba(255,255,255,0.75)",
+                    marginTop: 4,
+                  }}
+                >
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          FINAL CTA
+      ══════════════════════════════════════════════════════════════ */}
+      <section style={{ padding: "80px 0" }}>
+        <div className="wf-page">
+          <RevealSection>
+            <div
+              style={{
+                background: "linear-gradient(135deg, var(--color-teal) 0%, #1d4a45 100%)",
+                borderRadius: "var(--radius-lg)",
+                padding: "64px 40px",
+                textAlign: "center",
+                position: "relative",
+                overflow: "hidden",
+              }}
+            >
+              {/* Decorative circles */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: -60,
+                  right: -60,
+                  width: 200,
+                  height: 200,
+                  borderRadius: "50%",
+                  background: "rgba(255,255,255,0.05)",
+                }}
+              />
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: -40,
+                  left: -40,
+                  width: 160,
+                  height: 160,
+                  borderRadius: "50%",
+                  background: "rgba(255,255,255,0.03)",
+                }}
+              />
+
+              <h2
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: "clamp(2rem, 4vw, 2.75rem)",
+                  fontWeight: 400,
+                  color: "#fff",
+                  margin: 0,
+                  position: "relative",
+                }}
+              >
+                Your next chapter starts
+                <br />
+                with the right guide.
+              </h2>
+              <p
+                style={{
+                  fontSize: 17,
+                  color: "rgba(255,255,255,0.85)",
+                  margin: "20px auto 0",
+                  maxWidth: 420,
+                  position: "relative",
+                }}
+              >
+                Join free. Browse mentors. Book your first session in minutes.
+              </p>
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: 14,
+                  marginTop: 32,
+                  flexWrap: "wrap",
+                  position: "relative",
+                }}
+              >
+                <Link
+                  to="/register"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    fontSize: 15,
+                    fontWeight: 600,
+                    color: "var(--color-teal)",
+                    background: "#fff",
+                    padding: "14px 28px",
+                    borderRadius: "var(--radius-sm)",
+                    textDecoration: "none",
+                    transition: "transform 150ms ease, box-shadow 150ms ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.2)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
+                >
+                  Find Your Mentor <ArrowRight size={18} />
+                </Link>
+                <Link
+                  to="/register?role=mentor"
+                  style={{
+                    fontSize: 15,
+                    fontWeight: 600,
+                    color: "#fff",
+                    background: "rgba(255,255,255,0.12)",
+                    border: "1px solid rgba(255,255,255,0.25)",
+                    padding: "14px 28px",
+                    borderRadius: "var(--radius-sm)",
+                    textDecoration: "none",
+                    transition: "background 150ms ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "rgba(255,255,255,0.2)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "rgba(255,255,255,0.12)";
+                  }}
+                >
+                  Become a Mentor
+                </Link>
+              </div>
+            </div>
+          </RevealSection>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          FOOTER
+      ══════════════════════════════════════════════════════════════ */}
+      <footer
+        style={{
+          background: "var(--color-surface)",
+          borderTop: "1px solid var(--color-border)",
+          padding: "40px 0 32px",
+        }}
+      >
+        <div className="wf-page">
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 20,
+            }}
+          >
+            {/* Logo */}
+            <Link
+              to="/"
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: 20,
+                fontWeight: 600,
+                color: "var(--color-ink)",
+                textDecoration: "none",
+              }}
+            >
+              Mentor<span style={{ fontStyle: "italic", fontWeight: 400 }}>Hub</span>
+            </Link>
+
+            {/* Links */}
+            <div style={{ display: "flex", gap: 24 }}>
+              {[
+                { to: "/about", label: "About" },
+                { to: "/terms", label: "Terms" },
+                { to: "/privacy", label: "Privacy" },
+              ].map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  style={{
+                    fontSize: 14,
+                    color: "var(--color-muted)",
+                    textDecoration: "none",
+                    transition: "color 150ms ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = "var(--color-ink)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = "var(--color-muted)";
+                  }}
+                >
+                  {link.label}
+                </Link>
+              ))}
             </div>
           </div>
-          <div style={{ borderTop: "1px solid var(--color-border)", paddingTop: 20, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: "var(--color-blue)" }}>MentorHub</span>
-            <span className="wf-text-xs">&copy; {new Date().getFullYear()} MentorHub. All rights reserved.</span>
+
+          <div
+            style={{
+              marginTop: 24,
+              paddingTop: 20,
+              borderTop: "1px solid var(--color-border)",
+              fontSize: 13,
+              color: "var(--color-muted)",
+            }}
+          >
+            © 2024 MentorHub. All rights reserved.
           </div>
         </div>
       </footer>
-    </div>
+
+      {/* Keyframes */}
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+      `}</style>
+    </main>
   );
 }
