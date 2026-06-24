@@ -1,10 +1,11 @@
 import { Suspense, lazy } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import RouteErrorBoundary from "./components/RouteErrorBoundary";
 import LoadingState from "./components/LoadingState";
 import { useMessageNotifications } from "./hooks/useMessageNotifications";
+import { PageTransition } from "./components/animations";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Landing = lazy(() => import("./pages/Landing"));
@@ -90,6 +91,7 @@ function App() {
 
       <RouteErrorBoundary>
         <Suspense fallback={<RouteFallback />}>
+          <PageTransition>
           <Routes>
           {/* Public */}
           <Route path="/" element={<Landing />} />
@@ -143,6 +145,7 @@ function App() {
             <Route path="reports" element={<AdminReports />} />
           </Route>
           </Routes>
+          </PageTransition>
         </Suspense>
       </RouteErrorBoundary>
     </div>
