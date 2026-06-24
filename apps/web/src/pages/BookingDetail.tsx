@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useSearchParams, useNavigate } from "react-router-dom";
+import { Check, X } from "lucide-react";
 import { getBooking, confirmBooking, cancelBooking, scheduleSession, listMyPayments } from "../lib/api";
 import type { Booking } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
@@ -192,17 +193,9 @@ export default function BookingDetail() {
             className="wf-success-banner mb-5 rounded-xl flex items-start gap-3 px-5 py-4"
             style={{ background: "var(--color-blue)", color: "#fff" }}
           >
-            {/* Drawn checkmark */}
-            <svg
-              width="22" height="22" viewBox="0 0 22 22" fill="none"
-              style={{ flexShrink: 0, marginTop: 1 }}
-            >
-              <circle cx="11" cy="11" r="10" fill="rgba(255,255,255,0.18)" />
-              <path
-                d="M6.5 11.5 L9.5 14.5 L15.5 8.5"
-                stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-              />
-            </svg>
+            <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(255,255,255,0.18)", marginTop: 1 }}>
+              <Check size={14} style={{ color: "#fff" }} />
+            </div>
             <div className="flex-1">
               <p className="font-semibold" style={{ fontSize: 15 }}>Booking request sent</p>
               <p style={{ fontSize: 13, opacity: 0.85 }}>
@@ -212,9 +205,9 @@ export default function BookingDetail() {
             <button
               onClick={() => setShowBookedBanner(false)}
               aria-label="Dismiss"
-              style={{ opacity: 0.7, fontSize: 18, lineHeight: 1, cursor: "pointer", background: "none", border: "none", color: "#fff", padding: 0 }}
+              style={{ opacity: 0.7, cursor: "pointer", background: "none", border: "none", color: "#fff", padding: 0 }}
             >
-              ×
+              <X size={18} />
             </button>
           </div>
         )}
@@ -225,16 +218,9 @@ export default function BookingDetail() {
             className="wf-success-banner mb-5 rounded-xl flex items-start gap-3 px-5 py-4"
             style={{ background: "var(--color-green)", color: "#fff" }}
           >
-            <svg
-              width="22" height="22" viewBox="0 0 22 22" fill="none"
-              style={{ flexShrink: 0, marginTop: 1 }}
-            >
-              <circle cx="11" cy="11" r="10" fill="rgba(255,255,255,0.18)" />
-              <path
-                d="M6.5 11.5 L9.5 14.5 L15.5 8.5"
-                stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-              />
-            </svg>
+            <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(255,255,255,0.18)", marginTop: 1 }}>
+              <Check size={14} style={{ color: "#fff" }} />
+            </div>
             <div className="flex-1">
               <p className="font-semibold" style={{ fontSize: 15 }}>Payment successful</p>
               <p style={{ fontSize: 13, opacity: 0.85 }}>
@@ -244,9 +230,9 @@ export default function BookingDetail() {
             <button
               onClick={() => setShowPaidBanner(false)}
               aria-label="Dismiss"
-              style={{ opacity: 0.7, fontSize: 18, lineHeight: 1, cursor: "pointer", background: "none", border: "none", color: "#fff", padding: 0 }}
+              style={{ opacity: 0.7, cursor: "pointer", background: "none", border: "none", color: "#fff", padding: 0 }}
             >
-              ×
+              <X size={18} />
             </button>
           </div>
         )}

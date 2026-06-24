@@ -4,13 +4,10 @@ import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import type { MentorListItem } from "../lib/api";
 import { withViewTransition } from "../lib/withViewTransition";
+import { User, Circle } from "lucide-react";
 
 function AvatarPlaceholder() {
-  return (
-    <svg className="w-6 h-6" style={{ color: "var(--color-ink-3)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-    </svg>
-  );
+  return <User size={24} style={{ color: "var(--color-ink-3)" }} aria-hidden="true" />;
 }
 
 function AvatarWithFallback({ url, name }: { url?: string | null; name: string }) {
@@ -107,7 +104,7 @@ export default function MentorCard({ mentor, compatibilityScore, matchReason }: 
             }}
             title={matchReason}
           >
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true"><circle cx="5" cy="5" r="5" /></svg>
+            <Circle size={10} fill="currentColor" aria-hidden="true" />
             {compatibilityScore}% match
           </div>
           {matchReason && (

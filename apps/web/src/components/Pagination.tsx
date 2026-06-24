@@ -1,3 +1,5 @@
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
 interface PaginationProps {
   page: number;
   totalPages: number;
@@ -41,9 +43,7 @@ export default function Pagination({ page, totalPages, onPageChange }: Paginatio
         disabled={page === 1}
         className="w-8 h-8 flex items-center justify-center border border-line text-ink-2 hover:bg-paper-2 disabled:opacity-40 disabled:cursor-not-allowed"
       >
-        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
+        <ChevronLeft size={12} />
       </button>
 
       {pages.map((p, index) =>
@@ -71,9 +71,7 @@ export default function Pagination({ page, totalPages, onPageChange }: Paginatio
         disabled={page === totalPages}
         className="w-8 h-8 flex items-center justify-center border border-line text-ink-2 hover:bg-paper-2 disabled:opacity-40 disabled:cursor-not-allowed"
       >
-        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
+        <ChevronRight size={12} />
       </button>
     </nav>
   );

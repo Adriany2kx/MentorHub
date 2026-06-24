@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { Mail } from "lucide-react";
 import { requestReset } from "../lib/api";
 import { requestResetSchema } from "../lib/validators";
 
@@ -38,10 +39,9 @@ export default function ForgotPassword() {
           {sent ? (
             <>
               <div className="flex justify-center mb-4">
-                <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-                  <circle cx="24" cy="24" r="24" fill="#E8F0EF" />
-                  <path d="M13 18l11 8 11-8M13 18v14h22V18M13 18h22" stroke="#2E6A64" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "#E8F0EF" }}>
+                  <Mail size={24} style={{ color: "#2E6A64" }} />
+                </div>
               </div>
               <h1 className="wf-h2 mb-2">Check your email</h1>
               <p className="wf-text mb-6" style={{ color: "var(--color-ink-2)" }}>

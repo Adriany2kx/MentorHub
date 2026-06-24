@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Check } from "lucide-react";
 import { createAdminAccount } from "../lib/api";
 
 export default function AdminCreateAccount() {
@@ -49,9 +50,7 @@ export default function AdminCreateAccount() {
       <div className="wf-card max-w-md">
         {success ? (
           <div className="py-6 text-center">
-            <svg className="w-12 h-12 mx-auto mb-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
+            <Check size={48} className="mx-auto mb-3 text-green-600" />
             <p className="wf-text font-semibold">{success}</p>
           </div>
         ) : (

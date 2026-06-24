@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Target } from "lucide-react";
 import { listGoals, deleteGoal, createGoal, listMyBookings } from "../lib/api";
 import type { Goal, GoalStatus, Booking } from "../lib/api";
 import GoalCard from "../components/GoalCard";
@@ -211,6 +212,7 @@ export default function Goals() {
           </div>
         ) : goals.length === 0 ? (
           <div className="wf-empty">
+            <Target size={48} className="mx-auto mb-3" style={{ color: "var(--color-ink-3)" }} />
             <p className="wf-empty-title">
               {filter === "ALL" ? "No goals yet" : `No ${filter.toLowerCase().replace("_", " ")} goals`}
             </p>

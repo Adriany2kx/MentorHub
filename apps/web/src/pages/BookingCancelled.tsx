@@ -1,4 +1,5 @@
 import { Link, useSearchParams } from "react-router-dom";
+import { X } from "lucide-react";
 
 export default function BookingCancelled() {
   const [searchParams] = useSearchParams();
@@ -13,14 +14,7 @@ export default function BookingCancelled() {
             style={{ background: "color-mix(in srgb, var(--color-blue) 16%, white)" }}
             aria-hidden="true"
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M7 7L17 17M17 7L7 17"
-                stroke="var(--color-blue)"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-              />
-            </svg>
+            <X size={24} style={{ color: "var(--color-blue)" }} />
           </div>
 
           <h1 className="wf-h2 mb-3">Booking cancelled</h1>

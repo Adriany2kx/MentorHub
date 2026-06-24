@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
+import { CheckCircle, X, Sparkles, User } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import RoleBadge from "../components/RoleBadge";
 import StatusBadge from "../components/StatusBadge";
@@ -157,10 +158,7 @@ export default function Dashboard() {
             className="wf-success-banner mb-6 rounded-xl flex items-start gap-3 px-5 py-4"
             style={{ background: "var(--color-blue)", color: "#fff" }}
           >
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" style={{ flexShrink: 0, marginTop: 1 }}>
-              <circle cx="11" cy="11" r="10" fill="rgba(255,255,255,0.18)" />
-              <path d="M6.5 11.5 L9.5 14.5 L15.5 8.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <CheckCircle size={22} style={{ flexShrink: 0, marginTop: 1 }} />
             <div className="flex-1">
               <p className="font-semibold" style={{ fontSize: 15 }}>Your profile is set up — welcome to MentorHub.</p>
               <p style={{ fontSize: 13, opacity: 0.85 }}>Browse mentors to find the right fit, or explore programs to get started.</p>
@@ -168,9 +166,9 @@ export default function Dashboard() {
             <button
               onClick={() => setShowWelcomeBanner(false)}
               aria-label="Dismiss"
-              style={{ opacity: 0.7, fontSize: 18, lineHeight: 1, cursor: "pointer", background: "none", border: "none", color: "#fff", padding: 0 }}
+              style={{ opacity: 0.7, cursor: "pointer", background: "none", border: "none", color: "#fff", padding: 0 }}
             >
-              ×
+              <X size={18} />
             </button>
           </div>
         )}
@@ -417,12 +415,14 @@ export default function Dashboard() {
                 <div className="wf-empty">
                   {profileInsufficient ? (
                     <>
+                      <User size={48} className="mx-auto mb-3" style={{ color: "var(--color-ink-3)" }} />
                       <p className="wf-empty-title">Complete your profile for better matches</p>
                       <p className="wf-empty-text">Add your current role, target role, and goals so we can find the right mentors for you.</p>
                       <Link to="/profile/edit" className="wf-btn wf-btn-primary mt-4" style={{ display: "inline-block" }}>Complete profile</Link>
                     </>
                   ) : (
                     <>
+                      <Sparkles size={48} className="mx-auto mb-3" style={{ color: "var(--color-ink-3)" }} />
                       <p className="wf-empty-title">No recommendations yet</p>
                       <p className="wf-empty-text">We couldn't find strong matches right now. Try browsing all mentors.</p>
                       <Link to="/mentors" className="wf-btn wf-btn-secondary mt-4" style={{ display: "inline-block" }}>Browse mentors</Link>

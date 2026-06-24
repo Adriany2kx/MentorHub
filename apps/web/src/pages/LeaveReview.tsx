@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { Check } from "lucide-react";
 import { getBooking, createReview } from "../lib/api";
 import type { Booking } from "../lib/api";
 import StarRating from "../components/StarRating";
@@ -151,10 +152,9 @@ export default function LeaveReview() {
               className="wf-success-banner flex items-center gap-3 rounded-xl px-5 py-4"
               style={{ background: "var(--color-blue)", color: "#fff" }}
             >
-              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" style={{ flexShrink: 0 }}>
-                <circle cx="11" cy="11" r="10" fill="rgba(255,255,255,0.18)" />
-                <path d="M6.5 11.5 L9.5 14.5 L15.5 8.5" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(255,255,255,0.18)" }}>
+                <Check size={14} style={{ color: "#fff" }} />
+              </div>
               <div>
                 <p className="font-semibold" style={{ fontSize: 15 }}>Review submitted — thank you.</p>
                 <p style={{ fontSize: 13, opacity: 0.85 }}>Your feedback helps future mentees make better decisions.</p>

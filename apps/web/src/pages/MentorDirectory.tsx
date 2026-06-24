@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
+import { Search, AlertCircle } from "lucide-react";
 import { listMentors } from "../lib/api";
 import type { MentorListItem, Pagination as PaginationType } from "../lib/api";
 import MentorCard from "../components/MentorCard";
@@ -119,16 +120,18 @@ export default function MentorDirectory() {
               </div>
             ) : fetchError ? (
               <div className="wf-empty">
-                <div className="wf-h3 mb-2">Couldn't load mentors</div>
-                <p className="wf-text-sm text-ink-3 mb-4">Check your connection and try again.</p>
-                <button className="wf-btn wf-btn-secondary" onClick={fetchMentors}>
+                <AlertCircle size={48} className="mx-auto mb-3" style={{ color: "var(--color-ink-3)" }} />
+                <p className="wf-empty-title">Couldn't load mentors</p>
+                <p className="wf-empty-text">Check your connection and try again.</p>
+                <button className="wf-btn wf-btn-secondary mt-4" onClick={fetchMentors}>
                   Retry
                 </button>
               </div>
             ) : mentors.length === 0 ? (
               <div className="wf-empty">
-                <div className="wf-h3 mb-2">No mentors found</div>
-                <p className="wf-text-sm text-ink-3">Try a broader term — like "finance", "healthcare", or "law" — or clear your filters to browse all mentors.</p>
+                <Search size={48} className="mx-auto mb-3" style={{ color: "var(--color-ink-3)" }} />
+                <p className="wf-empty-title">No mentors found</p>
+                <p className="wf-empty-text">Try a broader term — like "finance", "healthcare", or "law" — or clear your filters to browse all mentors.</p>
               </div>
             ) : (
               <>

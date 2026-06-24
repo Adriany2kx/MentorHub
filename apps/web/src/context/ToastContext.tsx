@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { CheckCircle, XCircle, AlertTriangle, Info } from "lucide-react";
 
 type ToastType = "success" | "error" | "warning" | "info";
 
@@ -15,32 +16,10 @@ interface ToastContextValue {
 const ToastContext = createContext<ToastContextValue>({ toast: () => {} });
 
 const ICONS: Record<ToastType, ReactNode> = {
-  success: (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <circle cx="8" cy="8" r="7" fill="rgba(255,255,255,0.2)" />
-      <path d="M4.5 8.5 L7 11 L11.5 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  ),
-  error: (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <circle cx="8" cy="8" r="7" fill="rgba(255,255,255,0.2)" />
-      <path d="M5.5 5.5 L10.5 10.5 M10.5 5.5 L5.5 10.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  ),
-  warning: (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <path d="M8 2 L14 13 H2 Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" fill="rgba(255,255,255,0.2)" />
-      <line x1="8" y1="7" x2="8" y2="10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      <circle cx="8" cy="12" r="0.6" fill="currentColor" />
-    </svg>
-  ),
-  info: (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <circle cx="8" cy="8" r="7" fill="rgba(255,255,255,0.2)" />
-      <line x1="8" y1="7" x2="8" y2="11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      <circle cx="8" cy="5" r="0.75" fill="currentColor" />
-    </svg>
-  ),
+  success: <CheckCircle size={16} />,
+  error: <XCircle size={16} />,
+  warning: <AlertTriangle size={16} />,
+  info: <Info size={16} />,
 };
 
 const COLORS: Record<ToastType, { bg: string; color: string }> = {

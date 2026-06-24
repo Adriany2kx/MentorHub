@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
+import { Calendar } from "lucide-react";
 import { listMyBookings } from "../lib/api";
 import type { Booking } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
@@ -148,6 +149,7 @@ export default function MyBookings() {
           <p className="wf-error-text">{error}</p>
         ) : visibleBookings.length === 0 ? (
           <div className="wf-empty">
+            <Calendar size={48} className="mx-auto mb-3" style={{ color: "var(--color-ink-3)" }} />
             <p className="wf-empty-title">
               {activeTab === "Upcoming" ? "No upcoming bookings" : activeTab === "Past" ? "No completed sessions yet" : "No cancelled bookings"}
             </p>

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Calendar } from "lucide-react";
 import type { SessionDetail } from "../lib/api";
 import StatusBadge from "./StatusBadge";
 
@@ -32,9 +33,7 @@ export default function SessionCard({ session, viewAs }: SessionCardProps) {
       </div>
 
       <div className="flex items-center gap-3 wf-text-sm" style={{ color: "var(--color-ink-2)" }}>
-        <svg className="w-4 h-4 shrink-0" style={{ color: "var(--color-ink-3)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
+        <Calendar size={16} className="shrink-0" style={{ color: "var(--color-ink-3)" }} />
         <span>
           {scheduledDate.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
           {" at "}

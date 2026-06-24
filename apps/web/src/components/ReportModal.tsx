@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Check } from "lucide-react";
 import type { ReportReason } from "../lib/api";
 import { fileReport } from "../lib/api";
 
@@ -66,9 +67,7 @@ export default function ReportModal({ isOpen, onClose, reportedId, messageId }: 
 
         {success ? (
           <div className="py-8 text-center">
-            <svg className="w-12 h-12 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: "var(--color-ink)" }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
+            <Check size={48} className="mx-auto mb-3" style={{ color: "var(--color-ink)" }} />
             <p className="wf-text font-semibold">Report submitted</p>
             <p className="wf-text-sm mt-1" style={{ color: "var(--color-ink-3)" }}>Our team will review it shortly</p>
           </div>

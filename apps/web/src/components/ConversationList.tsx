@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { MessageSquare } from "lucide-react";
 import type { Conversation } from "../lib/api";
 
 interface ConversationListProps {
@@ -11,6 +12,7 @@ export default function ConversationList({ conversations, currentUserId, activeI
   if (conversations.length === 0) {
     return (
       <div className="p-6 text-center">
+        <MessageSquare size={40} className="mx-auto mb-3" style={{ color: "var(--color-ink-3)" }} />
         <p className="wf-text font-medium mb-1" style={{ color: "var(--color-ink)" }}>No conversations yet</p>
         <p className="wf-text-sm" style={{ color: "var(--color-ink-3)" }}>Book a program to start a conversation with your mentor.</p>
       </div>

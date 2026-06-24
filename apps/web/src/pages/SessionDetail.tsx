@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+import { Calendar, Clock, Video, Star } from "lucide-react";
 import { getSession, completeSession, cancelSession, getSessionAgenda, generateSessionSummary, extractActionItems } from "../lib/api";
 import type { SessionDetail as ISessionDetail, AiAgendaItem, AiSessionSummary } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
@@ -175,9 +176,7 @@ export default function SessionDetail() {
 
             <div className="space-y-3">
               <div className="flex items-center gap-3">
-                <svg className="w-4 h-4 shrink-0" style={{ color: "var(--color-ink-3)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
+                <Calendar size={16} className="shrink-0" style={{ color: "var(--color-ink-3)" }} />
                 <span className="wf-text">
                   {scheduledDate.toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
                   {" at "}
@@ -185,16 +184,12 @@ export default function SessionDetail() {
                 </span>
               </div>
               <div className="flex items-center gap-3">
-                <svg className="w-4 h-4 shrink-0" style={{ color: "var(--color-ink-3)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <Clock size={16} className="shrink-0" style={{ color: "var(--color-ink-3)" }} />
                 <span className="wf-text">{session.duration} minutes</span>
               </div>
               {session.meetingUrl && (
                 <div className="flex items-center gap-3">
-                  <svg className="w-4 h-4 shrink-0" style={{ color: "var(--color-ink-3)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
+                  <Video size={16} className="shrink-0" style={{ color: "var(--color-ink-3)" }} />
                   <a
                     href={session.meetingUrl}
                     target="_blank"
@@ -281,15 +276,12 @@ export default function SessionDetail() {
                   <p className="wf-eyebrow mb-2">Rating</p>
                   <div className="flex gap-1">
                     {[1, 2, 3, 4, 5].map((star) => (
-                      <svg
+                      <Star
                         key={star}
-                        className="w-5 h-5"
+                        size={20}
+                        fill={star <= session.rating! ? "currentColor" : "none"}
                         style={{ color: star <= session.rating! ? "var(--color-warning)" : "var(--color-border)" }}
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
+                      />
                     ))}
                   </div>
                 </div>
@@ -464,14 +456,12 @@ export default function SessionDetail() {
                             onClick={() => setRating(star === rating ? 0 : star)}
                             className="focus:outline-none"
                           >
-                            <svg
-                              className="w-8 h-8 transition-colors"
-                            style={{ color: star <= rating ? "var(--color-warning)" : "var(--color-border)" }}
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
+                            <Star
+                              size={32}
+                              className="transition-colors"
+                              fill={star <= rating ? "currentColor" : "none"}
+                              style={{ color: star <= rating ? "var(--color-warning)" : "var(--color-border)" }}
+                            />
                           </button>
                         ))}
                       </div>

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
+import { Sun, Moon, ChevronDown, Menu, X } from "lucide-react";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -153,25 +154,7 @@ export default function Navbar() {
               (e.currentTarget as HTMLElement).style.color = "var(--color-ink-2)";
             }}
           >
-            {theme === "dark" ? (
-              /* Sun icon */
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="5" />
-                <line x1="12" y1="1" x2="12" y2="3" />
-                <line x1="12" y1="21" x2="12" y2="23" />
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                <line x1="1" y1="12" x2="3" y2="12" />
-                <line x1="21" y1="12" x2="23" y2="12" />
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-              </svg>
-            ) : (
-              /* Moon icon */
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-              </svg>
-            )}
+            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
           </button>
 
           {!user ? (
@@ -245,12 +228,10 @@ export default function Navbar() {
                 >
                   {displayName}
                 </span>
-                <svg
-                  width="12" height="12" viewBox="0 0 12 12" fill="none"
+                <ChevronDown
+                  size={12}
                   style={{ color: "var(--color-ink-3)", transform: menuOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s" }}
-                >
-                  <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                />
               </button>
 
               {/* Dropdown menu */}
@@ -333,15 +314,7 @@ export default function Navbar() {
             }}
             aria-label="Toggle menu"
           >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              {mobileOpen ? (
-                <path d="M4 4l12 12M16 4L4 16" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-              ) : (
-                <>
-                  <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-                </>
-              )}
-            </svg>
+            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </nav>

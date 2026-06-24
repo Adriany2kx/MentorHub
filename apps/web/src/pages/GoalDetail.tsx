@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { Check, CheckCircle, X } from "lucide-react";
 import { getGoal, updateGoal, deleteGoal, addMilestone, toggleMilestone, getGoalMentors, getMentor, getLearningPath, getGoalPrediction, getGoalResources } from "../lib/api";
 import type { Goal, GoalStatus, AiMentorRecommendation, MentorDetail, AiLearningStage, AiPrediction, AiResource } from "../lib/api";
 import GoalProgressBar from "../components/GoalProgressBar";
@@ -190,15 +191,16 @@ export default function GoalDetail() {
         {/* Goal completed banner */}
         {showGoalCompleted && (
           <div className="mb-5 rounded-xl px-5 py-4 flex items-center gap-3" style={{ background: "var(--color-blue)", color: "#fff" }}>
-            <svg width="20" height="20" viewBox="0 0 22 22" fill="none" style={{ flexShrink: 0 }}>
-              <circle cx="11" cy="11" r="10" fill="rgba(255,255,255,0.18)" />
-              <path d="M6.5 11.5 L9.5 14.5 L15.5 8.5" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(255,255,255,0.18)" }}>
+              <Check size={12} style={{ color: "#fff" }} />
+            </div>
             <div className="flex-1">
               <p className="font-semibold" style={{ fontSize: 14 }}>Goal completed — great work.</p>
               <p style={{ fontSize: 12, opacity: 0.85 }}>Mark it as a win and set your next one.</p>
             </div>
-            <button onClick={() => setShowGoalCompleted(false)} style={{ opacity: 0.7, fontSize: 18, lineHeight: 1, cursor: "pointer", background: "none", border: "none", color: "#fff", padding: 0 }}>×</button>
+            <button onClick={() => setShowGoalCompleted(false)} style={{ opacity: 0.7, cursor: "pointer", background: "none", border: "none", color: "#fff", padding: 0 }}>
+              <X size={18} />
+            </button>
           </div>
         )}
 
@@ -288,9 +290,7 @@ export default function GoalDetail() {
 
               {goal.milestones.length > 0 && completedCount === goal.milestones.length && (
                 <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg" style={{ background: "rgba(45,106,79,0.07)", border: "1px solid rgba(45,106,79,0.20)" }}>
-                  <svg className="w-4 h-4 shrink-0" style={{ color: "var(--color-success)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                  <CheckCircle size={16} className="shrink-0" style={{ color: "var(--color-success)" }} />
                   <span className="wf-text-sm font-medium" style={{ color: "var(--color-success)" }}>All milestones reached — well done.</span>
                 </div>
               )}
@@ -307,9 +307,7 @@ export default function GoalDetail() {
                         style={m.isCompleted ? { background: "var(--color-blue)", borderColor: "var(--color-blue)" } : { borderColor: "var(--color-border)", background: "transparent" }}
                       >
                         {m.isCompleted && (
-                          <svg className="w-3 h-3" style={{ color: "#fff" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
+                          <Check size={12} style={{ color: "#fff" }} />
                         )}
                       </button>
                       <span className={`wf-text flex-1 ${m.isCompleted ? "line-through" : ""}`} style={{ color: m.isCompleted ? "var(--color-ink-3)" : "var(--color-ink)" }}>

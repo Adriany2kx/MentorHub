@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
+import { Check, X, Mail } from "lucide-react";
 import { verifyEmail, resendVerificationEmail } from "../lib/api";
 
 const BACKOFF_STEPS = [30, 60, 120, 240, 480];
@@ -80,10 +81,9 @@ export default function VerifyEmail() {
           {status === "success" && (
             <>
               <div className="flex justify-center mb-4">
-                <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-                  <circle cx="24" cy="24" r="24" fill="#E6F4ED" />
-                  <path d="M15 24l7 7 11-11" stroke="#2F7A4F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "#E6F4ED" }}>
+                  <Check size={24} style={{ color: "#2F7A4F" }} />
+                </div>
               </div>
               <h1 className="wf-h2 mb-2">Email verified</h1>
               <p className="wf-text mb-6" style={{ color: "var(--color-ink-2)" }}>
@@ -98,10 +98,9 @@ export default function VerifyEmail() {
           {status === "error" && (
             <>
               <div className="flex justify-center mb-4">
-                <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-                  <circle cx="24" cy="24" r="24" fill="#FBEAEA" />
-                  <path d="M17 17l14 14M31 17L17 31" stroke="#B74943" strokeWidth="2.5" strokeLinecap="round" />
-                </svg>
+                <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "#FBEAEA" }}>
+                  <X size={24} style={{ color: "#B74943" }} />
+                </div>
               </div>
               <h1 className="wf-h2 mb-2">Link expired</h1>
               <p className="wf-text mb-6" style={{ color: "var(--color-ink-2)" }}>
@@ -116,10 +115,9 @@ export default function VerifyEmail() {
           {status === "sent" && (
             <>
               <div className="flex justify-center mb-4">
-                <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-                  <circle cx="24" cy="24" r="24" fill="#E8F0EF" />
-                  <path d="M13 18l11 8 11-8M13 18v14h22V18M13 18h22" stroke="#2E6A64" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "#E8F0EF" }}>
+                  <Mail size={24} style={{ color: "#2E6A64" }} />
+                </div>
               </div>
               <h1 className="wf-h2 mb-2">Check your email</h1>
               <p className="wf-text mb-6" style={{ color: "var(--color-ink-2)" }}>

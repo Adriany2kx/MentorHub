@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { Check } from "lucide-react";
 import { listMentors, listPrograms } from "../lib/api";
 import type { MentorListItem, Program } from "../lib/api";
 import MentorCard from "../components/MentorCard";
@@ -170,9 +171,7 @@ export default function Landing() {
               "No minimum commitment",
             ].map((claim) => (
               <div key={claim} className="wf-trust-card flex items-center gap-2.5">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--color-blue)", flexShrink: 0 }} aria-hidden="true">
-                  <path d="M20 6L9 17l-5-5" />
-                </svg>
+                <Check size={16} style={{ color: "var(--color-blue)", flexShrink: 0 }} aria-hidden="true" />
                 <span className="wf-text-sm font-medium" style={{ color: "var(--color-ink)", lineHeight: 1.45 }}>{claim}</span>
               </div>
             ))}

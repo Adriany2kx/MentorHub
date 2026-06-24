@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { DollarSign } from "lucide-react";
 import { listMyPayments } from "../lib/api";
 import type { Payment } from "../lib/api";
 
@@ -42,9 +43,7 @@ export default function PaymentHistory() {
             </div>
           ) : payments.length === 0 ? (
             <div className="wf-empty">
-              <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+              <DollarSign size={48} className="mx-auto mb-3 opacity-50" />
               <p className="wf-empty-title">No payments yet</p>
               <p className="wf-empty-text">Payment history will appear here once you book a session.</p>
             </div>

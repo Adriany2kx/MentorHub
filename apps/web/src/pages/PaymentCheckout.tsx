@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { Check, Star, Lock, Loader2 } from "lucide-react";
 import { initiateCheckout, confirmPayment, getBooking } from "../lib/api";
 import type { Booking } from "../lib/api";
 
@@ -105,12 +106,9 @@ function SuccessScreen({ booking, onContinue }: { booking: Booking; onContinue: 
     <div className="text-center py-8">
       <div
         className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
-        style={{ background: "var(--color-success-bg, #d1fae5)" }}
+        style={{ background: "var(--color-success, #10b981)" }}
       >
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-          <circle cx="20" cy="20" r="20" fill="var(--color-success, #10b981)" />
-          <path d="M12 20.5L17.5 26L28 15" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <Check size={40} style={{ color: "#fff" }} />
       </div>
       <h2 className="wf-h2 mb-2">Payment confirmed!</h2>
       <p className="wf-text mb-1" style={{ color: "var(--color-ink-2)" }}>
@@ -228,9 +226,7 @@ export default function PaymentCheckout() {
 
         {/* Test mode banner */}
         <div className="flex items-center justify-center gap-2 mb-6 px-3 py-1.5 rounded-full w-fit mx-auto" style={{ background: "var(--color-warn-bg, #fef3c7)", border: "1px solid var(--color-warn, #f59e0b)" }}>
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="var(--color-warn, #f59e0b)">
-            <path d="M6 1L7.545 4.09L11 4.635L8.5 7.07L9.09 10.5L6 8.875L2.91 10.5L3.5 7.07L1 4.635L4.455 4.09L6 1Z"/>
-          </svg>
+          <Star size={12} fill="var(--color-warn, #f59e0b)" style={{ color: "var(--color-warn, #f59e0b)" }} />
           <span className="text-xs font-semibold" style={{ color: "var(--color-warn, #92400e)" }}>Simulated payment — no real charges</span>
         </div>
 
@@ -240,10 +236,7 @@ export default function PaymentCheckout() {
           {step === "processing" && (
             <div className="p-10 text-center">
               <div className="relative w-16 h-16 mx-auto mb-6">
-                <svg className="w-16 h-16 animate-spin" viewBox="0 0 64 64" fill="none">
-                  <circle cx="32" cy="32" r="28" stroke="var(--color-border)" strokeWidth="6" />
-                  <path d="M32 4a28 28 0 0 1 28 28" stroke="var(--color-blue)" strokeWidth="6" strokeLinecap="round" />
-                </svg>
+                <Loader2 size={64} className="animate-spin" style={{ color: "var(--color-blue)" }} />
               </div>
               <h2 className="wf-h3 mb-2">Processing payment…</h2>
               <p className="wf-text-sm" style={{ color: "var(--color-ink-3)" }}>Please don't close this window</p>
@@ -353,10 +346,7 @@ export default function PaymentCheckout() {
 
                   {/* Security footer */}
                   <div className="flex items-center justify-center gap-2" style={{ color: "var(--color-ink-3)" }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                    </svg>
+                    <Lock size={14} />
                     <span className="text-xs">Simulated secure checkout · No real charges</span>
                   </div>
                 </form>

@@ -70,6 +70,10 @@
   --radius-full: 9999px;
 
   /* — Shadows — warm-tinted per brand guidance — */
+  --shadow-sm:       0 1px 2px rgba(44,20,10,0.04);
+  --shadow-md:       0 2px 4px rgba(44,20,10,0.06), 0 1px 2px rgba(44,20,10,0.04);
+  --shadow-lg:       0 4px 12px rgba(44,20,10,0.08), 0 2px 4px rgba(44,20,10,0.04);
+  --shadow-xl:       0 8px 24px rgba(44,20,10,0.12), 0 4px 8px rgba(44,20,10,0.06);
   --shadow-card:     0 2px 8px rgba(44,20,10,0.08), 0 1px 2px rgba(44,20,10,0.05);
   --shadow-dropdown: 0 6px 24px rgba(44,20,10,0.14);
   --shadow-modal:    0 12px 40px rgba(44,20,10,0.20);
@@ -128,7 +132,7 @@ body::before {
   a {
     color: var(--color-blue);
     text-decoration: none;
-    transition: color 0.15s ease;
+    transition: color var(--duration-normal) var(--ease-out);
   }
   a:hover { color: var(--color-blue-hover); }
 .wf-hero-drift {
@@ -276,7 +280,10 @@ body::before {
     box-shadow: var(--shadow-card);
     padding: 16px 18px;
     min-height: 76px;
-    transition: transform 220ms var(--ease-out-quart), box-shadow 220ms var(--ease-out-quart), border-color 220ms var(--ease-out-quart);
+    transition:
+      transform var(--duration-normal) var(--ease-out),
+      box-shadow var(--duration-normal) var(--ease-out),
+      border-color var(--duration-normal) var(--ease-out);
   }
 
   .wf-trust-card:hover {
@@ -299,7 +306,12 @@ body::before {
     letter-spacing: 0;
     text-transform: none;
     cursor: pointer;
-    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+    transition:
+      background var(--duration-normal) var(--ease-out),
+      border-color var(--duration-normal) var(--ease-out),
+      color var(--duration-normal) var(--ease-out),
+      box-shadow var(--duration-normal) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out);
     white-space: nowrap;
     border: 1px solid transparent;
     line-height: 1.4;
@@ -380,14 +392,16 @@ body::before {
     font-size: 1rem;
     color: var(--color-ink);
     outline: none;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    transition:
+      border-color var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out);
     line-height: 1.5;
   }
   .wf-input:focus,
   .wf-textarea:focus,
   .wf-select:focus {
     border-color: var(--color-blue);
-    box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-blue) 15%, transparent);
   }
   .wf-input::placeholder,
   .wf-textarea::placeholder {
@@ -419,11 +433,13 @@ body::before {
     color: var(--color-ink);
     width: 100%;
     outline: none;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    transition:
+      border-color var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out);
   }
   .wf-input-box:focus {
     border-color: var(--color-blue);
-    box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-blue) 15%, transparent);
   }
 
   /* ---- Tags / Badges --------------------------------------- */
@@ -735,10 +751,19 @@ body::before {
    MOTION & ANIMATION
    ============================================================ */
 
-/* Easing tokens */
+/* Easing tokens — per UI improvement plan */
 :root {
   --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out:       cubic-bezier(0.16, 1, 0.3, 1);      /* Elements entering */
+  --ease-in:        cubic-bezier(0.4, 0, 1, 1);         /* Elements exiting */
+  --ease-in-out:    cubic-bezier(0.4, 0, 0.2, 1);       /* Moving elements */
+  --spring:         cubic-bezier(0.34, 1.56, 0.64, 1);  /* Playful bounce */
+
+  /* Duration tokens */
+  --duration-fast:   100ms;   /* Hovers, focus rings */
+  --duration-normal: 150ms;   /* Most transitions */
+  --duration-slow:   250ms;   /* Page transitions, modals */
 }
 
 /* Entrance keyframe — fade + slide up */
@@ -768,16 +793,21 @@ body::before {
 @layer components {
   a.wf-card, button.wf-card {
     transition:
-      transform 220ms var(--ease-out-quart),
-      box-shadow 220ms var(--ease-out-quart),
-      background 0.15s ease,
-      border-color 0.15s ease,
-      color 0.15s ease;
+      transform var(--duration-normal) var(--ease-out),
+      box-shadow var(--duration-normal) var(--ease-out),
+      background var(--duration-normal) var(--ease-out),
+      border-color var(--duration-normal) var(--ease-out),
+      color var(--duration-normal) var(--ease-out);
   }
   a.wf-card:hover, button.wf-card:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-dropdown);
     border-color: var(--color-blue);
+  }
+  a.wf-card:active, button.wf-card:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-card);
+    transition-duration: var(--duration-fast);
   }
 }
 
@@ -1344,9 +1374,10 @@ body::before {
 .wf-loading-stagger > *:nth-child(7) { animation-delay: 360ms; }
 .wf-loading-stagger > *:nth-child(8) { animation-delay: 420ms; }
 
-/* Button tactile press — 1 px press-down on click */
+/* Button tactile press — subtle scale on click */
 .wf-btn:active:not(:disabled) {
-  transform: translateY(1px);
+  transform: scale(0.98);
+  transition-duration: var(--duration-fast);
 }
 
 /* Milestone checkbox pop — fires when a milestone is checked */
@@ -1611,6 +1642,10 @@ body::before {
   --color-warn:    #D9A773;
 
   /* Shadows */
+  --shadow-sm:       0 1px 2px rgba(19,9,5,0.20);
+  --shadow-md:       0 2px 4px rgba(19,9,5,0.30), 0 1px 2px rgba(19,9,5,0.20);
+  --shadow-lg:       0 4px 12px rgba(19,9,5,0.40), 0 2px 4px rgba(19,9,5,0.25);
+  --shadow-xl:       0 8px 24px rgba(19,9,5,0.50), 0 4px 8px rgba(19,9,5,0.30);
   --shadow-card:     0 2px 8px rgba(19,9,5,0.40), 0 1px 2px rgba(19,9,5,0.30);
   --shadow-dropdown: 0 6px 24px rgba(19,9,5,0.54);
   --shadow-modal:    0 12px 40px rgba(19,9,5,0.64);
@@ -1635,7 +1670,7 @@ body::before {
 [data-theme="dark"] .wf-textarea:focus,
 [data-theme="dark"] .wf-select:focus,
 [data-theme="dark"] .wf-input-box:focus {
-  box-shadow: 0 0 0 3px rgba(129,140,248,0.25);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-blue) 20%, transparent);
 }
 
 /* Suppress browser-native password reveal button (Edge, Chrome on Windows)

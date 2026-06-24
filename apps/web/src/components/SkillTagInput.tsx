@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { X } from "lucide-react";
 
 interface SkillTagInputProps {
   label: string;
@@ -58,9 +59,7 @@ export default function SkillTagInput({
               onClick={() => removeTag(tag)}
               className="hover:opacity-70"
             >
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X size={12} />
             </button>
           </span>
         ))}

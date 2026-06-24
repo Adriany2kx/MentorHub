@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { MessageSquare, ChevronLeft, AlertCircle } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import {
   listConversations,
@@ -168,12 +169,7 @@ export default function Messages() {
         {!activeId ? (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center px-6">
-              <svg width="44" height="44" viewBox="0 0 44 44" fill="none" className="mx-auto mb-4" style={{ color: "var(--color-border)" }}>
-                <rect x="4" y="8" width="36" height="24" rx="4" stroke="currentColor" strokeWidth="2" fill="none"/>
-                <path d="M4 32 L14 38 L14 32" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" fill="none"/>
-                <line x1="12" y1="18" x2="32" y2="18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                <line x1="12" y1="24" x2="24" y2="24" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
+              <MessageSquare size={44} className="mx-auto mb-4" style={{ color: "var(--color-border)" }} />
               <p className="wf-text font-medium mb-1" style={{ color: "var(--color-ink)" }}>Choose a conversation</p>
               <p className="wf-text-sm" style={{ color: "var(--color-ink-3)" }}>Messages between you and your mentors or mentees appear here.</p>
             </div>
@@ -187,9 +183,7 @@ export default function Messages() {
                   onClick={() => navigate("/messages")}
                   className="sm:hidden wf-btn wf-btn-secondary px-2 py-1"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
+                  <ChevronLeft size={16} />
                 </button>
                 {other && (
                   <div className="wf-avatar wf-avatar-sm shrink-0">
@@ -208,9 +202,7 @@ export default function Messages() {
                   className="wf-btn wf-btn-secondary px-2 py-1"
                   title="Report user"
                 >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
-                  </svg>
+                  <AlertCircle size={16} />
                 </button>
               )}
             </div>

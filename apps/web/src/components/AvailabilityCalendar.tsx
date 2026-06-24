@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Plus, X } from "lucide-react";
 import { setAvailabilityBulk } from "../lib/api";
 import type { Availability } from "../lib/api";
 
@@ -93,9 +94,7 @@ export default function AvailabilityCalendar({
               onClick={() => addSlot(dayIndex)}
               className="wf-btn wf-btn-link flex items-center gap-1"
             >
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
+              <Plus size={12} />
               Add slot
             </button>
           </div>
@@ -130,9 +129,7 @@ export default function AvailabilityCalendar({
                     onClick={() => removeSlot(index)}
                     className="text-ink-3 hover:text-error ml-1"
                   >
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <X size={12} />
                   </button>
                 </div>
               ))}

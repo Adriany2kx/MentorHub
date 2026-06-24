@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Info, Star, CheckCircle, Check } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { updateMyProfile, createMenteeProfile, updateMenteeProfile } from "../lib/api";
 import type { SkillEntry } from "../lib/api";
@@ -78,7 +79,7 @@ function StepBar({ step }: { step: number }) {
                 color: done || active ? "#fff" : "var(--color-ink-3)",
               }}
             >
-              {done ? "✓" : num}
+              {done ? <Check size={14} /> : num}
             </div>
             {i < count - 1 && (
               <div
@@ -278,9 +279,7 @@ export default function ProfileSetup() {
               </div>
 
               <div className="flex items-center gap-2 p-3 rounded-lg" style={{ background: "var(--color-bg)", border: "1px solid var(--color-border)" }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: "var(--color-ink-3)", flexShrink: 0 }}>
-                  <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
+                <Info size={16} className="shrink-0" style={{ color: "var(--color-ink-3)" }} />
                 <p className="wf-text-xs" style={{ color: "var(--color-ink-2)" }}>
                   Timezone auto-detected as <strong>{timezone}</strong> — you can change this in profile settings later.
                 </p>
@@ -479,9 +478,7 @@ export default function ProfileSetup() {
 
               {/* Mid-flow value hook */}
               <div className="flex items-center gap-3 p-4 rounded-lg" style={{ background: "color-mix(in srgb, var(--color-blue) 6%, transparent)", border: "1px solid color-mix(in srgb, var(--color-blue) 20%, transparent)" }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-blue)" strokeWidth="2">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                </svg>
+                <Star size={20} style={{ color: "var(--color-blue)" }} />
                 <p className="wf-text-sm" style={{ color: "var(--color-blue)" }}>
                   <strong>Your answers unlock AI-generated session agendas</strong> — mentors get a tailored plan before every session.
                 </p>
@@ -506,9 +503,7 @@ export default function ProfileSetup() {
             <div className="p-6 space-y-6">
               <div className="text-center">
                 <div className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: "color-mix(in srgb, var(--color-blue) 10%, transparent)" }}>
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-blue)" strokeWidth="2">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
-                  </svg>
+                  <CheckCircle size={28} style={{ color: "var(--color-blue)" }} />
                 </div>
                 <h1 className="wf-h2 mb-1">You're all set{firstName ? `, ${firstName}` : ""}!</h1>
                 <p className="wf-text-sm" style={{ color: "var(--color-ink-2)" }}>
