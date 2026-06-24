@@ -51,6 +51,9 @@ type CreateSessionOptions = {
   scheduledAt?: Date;
   duration?: number;
   status?: SessionStatus;
+  mentorNotes?: string;
+  menteeFeedback?: string;
+  aiSummary?: Record<string, unknown>;
 };
 
 export async function createMentoringSession(options: CreateSessionOptions) {
@@ -60,6 +63,9 @@ export async function createMentoringSession(options: CreateSessionOptions) {
       scheduledAt: options.scheduledAt ?? faker.date.future(),
       duration: options.duration ?? 60,
       status: options.status ?? "SCHEDULED",
+      mentorNotes: options.mentorNotes,
+      menteeFeedback: options.menteeFeedback,
+      aiSummary: options.aiSummary,
     },
   });
 }
@@ -68,6 +74,7 @@ type CreateGoalOptions = {
   menteeId: string;
   bookingId?: string;
   title?: string;
+  description?: string;
   status?: GoalStatus;
   progress?: number;
 };
@@ -78,7 +85,7 @@ export async function createGoal(options: CreateGoalOptions) {
       menteeId: options.menteeId,
       bookingId: options.bookingId,
       title: options.title ?? faker.lorem.sentence(),
-      description: faker.lorem.paragraph(),
+      description: options.description ?? faker.lorem.paragraph(),
       status: options.status ?? "IN_PROGRESS",
       progress: options.progress ?? faker.number.int({ min: 0, max: 100 }),
     },

@@ -28,15 +28,78 @@ vi.mock("resend", () => {
 
 // Mock Google Generative AI (old SDK)
 vi.mock("@google/generative-ai", () => {
+  const mockResponses: Record<string, unknown> = {
+    "mentor-matching": [
+      { mentorId: "test-mentor-1", score: 95, reason: "Strong expertise match" },
+      { mentorId: "test-mentor-2", score: 85, reason: "Good goal alignment" },
+    ],
+    compatibility: { explanation: "Good match based on shared expertise areas." },
+    milestone: [
+      { title: "Setup development environment", description: "Install tools", order: 1, suggestedWeeks: 1 },
+      { title: "Complete online course", description: "Learn basics", order: 2, suggestedWeeks: 2 },
+      { title: "Build practice project", description: "Apply knowledge", order: 3, suggestedWeeks: 3 },
+    ],
+    "learning path": [
+      { stage: "Foundation", focus: "Core concepts", resourceTypes: ["courses"], estimatedDuration: "2 weeks" },
+      { stage: "Practice", focus: "Hands-on projects", resourceTypes: ["tutorials"], estimatedDuration: "3 weeks" },
+    ],
+    progress: {
+      highlights: ["Completed 3 sessions this month"],
+      stalledAreas: [],
+      recommendations: ["Schedule more sessions"],
+      sessionFrequency: "Weekly",
+    },
+    agenda: [
+      { item: "Review progress", rationale: "Check on goals", estimatedMinutes: 10 },
+      { item: "Deep dive into topic", rationale: "Focus on key area", estimatedMinutes: 40 },
+    ],
+    summar: {
+      keyPoints: ["Discussed career goals", "Reviewed progress"],
+      decisions: ["Focus on React"],
+      actionItems: ["Complete tutorial", "Practice hooks"],
+      followUpQuestions: ["How did the practice go?"],
+    },
+    resource: [
+      { topic: "React", resourceType: "Tutorial", searchQuery: "React tutorial 2024", rationale: "Foundation" },
+    ],
+    "action": ["Complete the tutorial", "Practice hooks daily"],
+  };
+
   return {
     GoogleGenerativeAI: function () {
       return {
         getGenerativeModel: vi.fn().mockReturnValue({
-          generateContent: vi.fn().mockImplementation(() => ({
-            response: {
-              text: () => JSON.stringify([]),
-            },
-          })),
+          generateContent: vi.fn().mockImplementation(({ systemInstruction }: { systemInstruction?: string }) => {
+            let response: unknown = [];
+            const instruction = (systemInstruction || "").toLowerCase();
+
+            if (instruction.includes("30 words") || instruction.includes("good fit")) {
+              // Compatibility endpoint - check this BEFORE mentor-matching
+              response = mockResponses.compatibility;
+            } else if (instruction.includes("mentor-matching") || instruction.includes("match the most relevant")) {
+              response = mockResponses["mentor-matching"];
+            } else if (instruction.includes("milestone")) {
+              response = mockResponses.milestone;
+            } else if (instruction.includes("learning path")) {
+              response = mockResponses["learning path"];
+            } else if (instruction.includes("progress")) {
+              response = mockResponses.progress;
+            } else if (instruction.includes("agenda")) {
+              response = mockResponses.agenda;
+            } else if (instruction.includes("summar")) {
+              response = mockResponses.summar;
+            } else if (instruction.includes("resource")) {
+              response = mockResponses.resource;
+            } else if (instruction.includes("action")) {
+              response = mockResponses.action;
+            }
+
+            return {
+              response: {
+                text: () => JSON.stringify(response),
+              },
+            };
+          }),
         }),
       };
     },
