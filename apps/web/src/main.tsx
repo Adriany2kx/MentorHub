@@ -2,14 +2,16 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { initSentry, Sentry } from "./lib/sentry";
+import { initAnalytics } from "./lib/analytics";
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { ToastProvider } from "./context/ToastContext";
 import "./index.css";
 import App from "./App.tsx";
 
-// Initialize Sentry before rendering
+// Initialize Sentry and Analytics before rendering
 initSentry();
+initAnalytics();
 
 function ErrorFallback() {
   return (

@@ -8,6 +8,7 @@ import MentorFilters from "../components/MentorFilters";
 import SearchBar from "../components/SearchBar";
 import Pagination from "../components/Pagination";
 import { withViewTransition } from "../lib/withViewTransition";
+import { analytics } from "../lib/analytics";
 
 export default function MentorDirectory() {
   const [searchParams] = useSearchParams();
@@ -36,6 +37,10 @@ export default function MentorDirectory() {
       });
       setMentors(data.mentors);
       setPagination(data.pagination);
+      // Track search if there's a query
+      if (search) {
+        analytics.searchPerformed(search, data.pagination.total);
+      }
     } catch {
       setMentors([]);
       setFetchError(true);
@@ -59,6 +64,12 @@ export default function MentorDirectory() {
     withViewTransition(() => {
       setFilters(newFilters);
       setPage(1);
+    });
+    // Track filter changes
+    Object.entries(newFilters).forEach(([key, value]) => {
+      if (value !== undefined) {
+        analytics.filterApplied(key, String(value));
+      }
     });
   }
 

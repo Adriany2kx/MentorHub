@@ -7,6 +7,7 @@ import ProgramCard from "../components/ProgramCard";
 import ReviewCard from "../components/ReviewCard";
 import StarRating from "../components/StarRating";
 import LoadingState from "../components/LoadingState";
+import { analytics } from "../lib/analytics";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -26,7 +27,10 @@ export default function MentorDetail() {
     setIsLoading(true);
     setError("");
     getMentor(id)
-      .then((d) => setMentor(d.mentor))
+      .then((d) => {
+        setMentor(d.mentor);
+        analytics.mentorViewed(id, "direct");
+      })
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load mentor"))
       .finally(() => setIsLoading(false));
 

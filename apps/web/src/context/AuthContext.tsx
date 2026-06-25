@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { getMe, login as apiLogin, logout as apiLogout, register as apiRegister } from "../lib/api";
 import type { AuthUser, Role } from "../lib/api";
 import { setUser as setSentryUser, clearUser as clearSentryUser } from "../lib/sentry";
+import { analytics } from "../lib/analytics";
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -48,6 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const data = await apiRegister(email, password, recaptchaToken);
     setUser(data.user);
     setSentryUser(data.user.id, data.user.email);
+    analytics.userSignedUp("email");
   };
 
   const logout = async () => {
