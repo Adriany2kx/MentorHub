@@ -1,4 +1,15 @@
+import { captureError } from "./sentry";
+
 const API_BASE = "/api";
+
+class ApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
@@ -11,11 +22,20 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   try {
     data = await res.json();
   } catch {
-    throw new Error("Something went wrong");
+    const err = new ApiError("Something went wrong", res.status);
+    if (res.status >= 500) {
+      captureError(err, { path, method: options?.method ?? "GET" });
+    }
+    throw err;
   }
 
   if (!res.ok) {
-    throw new Error(data.error ?? "Something went wrong");
+    const err = new ApiError(data.error ?? "Something went wrong", res.status);
+    // Only capture server errors (5xx) to Sentry, not client errors (4xx)
+    if (res.status >= 500) {
+      captureError(err, { path, method: options?.method ?? "GET" });
+    }
+    throw err;
   }
 
   return data;
@@ -32,11 +52,19 @@ async function requestFormData<T>(path: string, formData: FormData): Promise<T> 
   try {
     data = await res.json();
   } catch {
-    throw new Error("Something went wrong");
+    const err = new ApiError("Something went wrong", res.status);
+    if (res.status >= 500) {
+      captureError(err, { path, method: "POST" });
+    }
+    throw err;
   }
 
   if (!res.ok) {
-    throw new Error(data.error ?? "Something went wrong");
+    const err = new ApiError(data.error ?? "Something went wrong", res.status);
+    if (res.status >= 500) {
+      captureError(err, { path, method: "POST" });
+    }
+    throw err;
   }
 
   return data;

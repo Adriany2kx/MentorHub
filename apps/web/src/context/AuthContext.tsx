@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback } from "rea
 import type { ReactNode } from "react";
 import { getMe, login as apiLogin, logout as apiLogout, register as apiRegister } from "../lib/api";
 import type { AuthUser, Role } from "../lib/api";
+import { setUser as setSentryUser, clearUser as clearSentryUser } from "../lib/sentry";
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -25,8 +26,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const data = await getMe();
       setUser(data.user);
+      setSentryUser(data.user.id, data.user.email);
     } catch {
       setUser(null);
+      clearSentryUser();
     }
   }, []);
 
@@ -38,16 +41,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string, recaptchaToken?: string) => {
     const data = await apiLogin(email, password, recaptchaToken);
     setUser(data.user);
+    setSentryUser(data.user.id, data.user.email);
   };
 
   const register = async (email: string, password: string, recaptchaToken?: string) => {
     const data = await apiRegister(email, password, recaptchaToken);
     setUser(data.user);
+    setSentryUser(data.user.id, data.user.email);
   };
 
   const logout = async () => {
     await apiLogout();
     setUser(null);
+    clearSentryUser();
   };
 
   const isRole = useCallback((role: Role) => user?.role === role, [user]);
