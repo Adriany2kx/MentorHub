@@ -3,12 +3,20 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getAdminStats, listAdminUsers } from "../lib/api";
 import type { AdminStats, AdminUser } from "../lib/api";
+import { AnimatedNumber } from "../components/animations";
 
-function StatCard({ label, value, sub }: { label: string; value: number | string; sub?: string }) {
+function StatCard({ label, value, sub, prefix, suffix }: { label: string; value: number | string; sub?: string; prefix?: string; suffix?: string }) {
+  const isNumber = typeof value === "number";
   return (
     <div className="wf-stat">
       <p className="wf-stat-label">{label}</p>
-      <p className="wf-stat-value">{value}</p>
+      <p className="wf-stat-value">
+        {isNumber ? (
+          <AnimatedNumber value={value} prefix={prefix} suffix={suffix} duration={1000} />
+        ) : (
+          value
+        )}
+      </p>
       {sub && <p className="wf-stat-sub">{sub}</p>}
     </div>
   );
@@ -98,10 +106,17 @@ export function AdminLayout() {
   );
 }
 
+const CURRENCIES = [
+  { code: "GBP", symbol: "£" },
+  { code: "USD", symbol: "$" },
+  { code: "EUR", symbol: "€" },
+] as const;
+
 export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [recentUsers, setRecentUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currency, setCurrency] = useState<typeof CURRENCIES[number]>(CURRENCIES[0]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -130,6 +145,31 @@ export default function AdminDashboard() {
     <div className="wf-page">
       <div className="wf-page-header flex items-center justify-between">
         <h1 className="wf-h1">Admin Dashboard</h1>
+        <div className="flex items-center gap-2">
+          <span style={{ fontSize: 12, color: "var(--color-ink-3)" }}>Currency:</span>
+          <div style={{ display: "flex", gap: 4 }}>
+            {CURRENCIES.map((c) => (
+              <button
+                key={c.code}
+                onClick={() => setCurrency(c)}
+                style={{
+                  padding: "4px 10px",
+                  fontSize: 12,
+                  fontWeight: 500,
+                  border: "1px solid",
+                  borderColor: currency.code === c.code ? "var(--color-green)" : "var(--color-border)",
+                  borderRadius: "var(--radius-sm)",
+                  background: currency.code === c.code ? "var(--color-green)" : "transparent",
+                  color: currency.code === c.code ? "#fff" : "var(--color-ink-2)",
+                  cursor: "pointer",
+                  transition: "all 150ms ease",
+                }}
+              >
+                {c.symbol} {c.code}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Stats row */}
@@ -137,22 +177,23 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatCard
             label="Total Users"
-            value={stats.totalUsers.toLocaleString()}
+            value={stats.totalUsers}
             sub={`${stats.totalMentors} mentors · ${stats.totalMentees} mentees`}
           />
           <StatCard
             label="Active Sessions"
-            value={stats.activeSessions.toLocaleString()}
+            value={stats.activeSessions}
             sub={`${stats.totalSessions} total`}
           />
           <StatCard
             label="Published Programs"
-            value={stats.totalPrograms.toLocaleString()}
+            value={stats.totalPrograms}
             sub={`${stats.activeBookings} active bookings`}
           />
           <StatCard
             label="Total Revenue"
-            value={`$${stats.totalRevenue.toLocaleString()}`}
+            value={stats.totalRevenue}
+            prefix={currency.symbol}
             sub={`${stats.totalBookings} bookings`}
           />
         </div>

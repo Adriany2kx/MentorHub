@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
-import { CheckCircle, X, Sparkles, User } from "lucide-react";
+import { CheckCircle, X, Sparkles, User, Calendar, TrendingUp, Clock, Target } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import RoleBadge from "../components/RoleBadge";
 import StatusBadge from "../components/StatusBadge";
+import { AnimatedNumber } from "../components/animations";
 import { listMySessions, listMyBookings, getMentorRecommendations, getProfileQuality, getMentor, getProgressInsights } from "../lib/api";
 import type { SessionDetail as ISessionDetail, Booking, AiMentorRecommendation, AiProfileQuality, MentorDetail, AiInsights } from "../lib/api";
 
@@ -133,22 +134,30 @@ export default function Dashboard() {
               </span>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div className="wf-stat p-4">
-                <div className="wf-stat-label">Bookings</div>
-                <div className="wf-stat-value">{bookingStats.total}</div>
-              </div>
-              <div className="wf-stat p-4">
-                <div className="wf-stat-label">Active</div>
-                <div className="wf-stat-value">{bookingStats.active}</div>
-              </div>
-              <div className="wf-stat p-4">
-                <div className="wf-stat-label">Pending</div>
-                <div className="wf-stat-value">{bookingStats.pending}</div>
-              </div>
-              <div className="wf-stat p-4">
-                <div className="wf-stat-label">Sessions</div>
-                <div className="wf-stat-value">{upcomingSessions.length}</div>
-              </div>
+              <StatCard
+                icon={Calendar}
+                label="Bookings"
+                value={bookingStats.total}
+                color="var(--color-green)"
+              />
+              <StatCard
+                icon={TrendingUp}
+                label="Active"
+                value={bookingStats.active}
+                color="var(--color-success)"
+              />
+              <StatCard
+                icon={Clock}
+                label="Pending"
+                value={bookingStats.pending}
+                color="var(--color-warning)"
+              />
+              <StatCard
+                icon={Target}
+                label="Sessions"
+                value={upcomingSessions.length}
+                color="var(--color-blue)"
+              />
             </div>
           </div>
         </div>
@@ -471,6 +480,86 @@ export default function Dashboard() {
             )}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+/* ── StatCard Component ── */
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  color,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: number;
+  color: string;
+}) {
+  return (
+    <div
+      style={{
+        background: "var(--color-surface)",
+        border: "1px solid var(--color-border)",
+        borderRadius: "var(--radius-md)",
+        padding: 16,
+        position: "relative",
+        overflow: "hidden",
+        transition: "all 200ms ease",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = color;
+        e.currentTarget.style.transform = "translateY(-2px)";
+        e.currentTarget.style.boxShadow = "var(--shadow-md)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = "var(--color-border)";
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.boxShadow = "none";
+      }}
+    >
+      {/* Icon */}
+      <div
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: "var(--radius-sm)",
+          background: `color-mix(in oklab, ${color} 12%, var(--color-surface))`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          marginBottom: 12,
+        }}
+      >
+        <Icon size={16} style={{ color }} />
+      </div>
+
+      {/* Value */}
+      <div
+        style={{
+          fontSize: 28,
+          fontWeight: 700,
+          color: "var(--color-ink)",
+          lineHeight: 1,
+          fontVariantNumeric: "tabular-nums",
+        }}
+      >
+        <AnimatedNumber value={value} duration={800} />
+      </div>
+
+      {/* Label */}
+      <div
+        style={{
+          fontSize: 12,
+          fontWeight: 500,
+          color: "var(--color-ink-3)",
+          marginTop: 4,
+          textTransform: "uppercase",
+          letterSpacing: "0.05em",
+        }}
+      >
+        {label}
       </div>
     </div>
   );
