@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useLocation } from "react-router-dom";
+import { useReducedMotion } from "../../hooks/useReducedMotion";
 
 interface PageTransitionProps {
   children: React.ReactNode;
@@ -19,6 +20,7 @@ export default function PageTransition({ children }: PageTransitionProps) {
   const [displayChildren, setDisplayChildren] = useState(children);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const prevPathRef = useRef(location.pathname);
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
     // Skip if same path (query string changes shouldn't trigger)
@@ -26,10 +28,6 @@ export default function PageTransition({ children }: PageTransitionProps) {
       setDisplayChildren(children);
       return;
     }
-
-    const prefersReducedMotion =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     if (prefersReducedMotion) {
       setDisplayChildren(children);
@@ -61,7 +59,7 @@ export default function PageTransition({ children }: PageTransitionProps) {
 
       return () => clearTimeout(exitTimer);
     }
-  }, [location.pathname, children]);
+  }, [location.pathname, children, prefersReducedMotion]);
 
   return (
     <div
@@ -122,12 +120,9 @@ export default function PageTransition({ children }: PageTransitionProps) {
  */
 export function usePageTransition() {
   const [isNavigating, setIsNavigating] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
 
   function startTransition(callback: () => void) {
-    const prefersReducedMotion =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
     if (prefersReducedMotion) {
       callback();
       return;

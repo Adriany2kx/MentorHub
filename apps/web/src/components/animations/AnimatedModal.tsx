@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
+import { useReducedMotion } from "../../hooks/useReducedMotion";
 
 interface AnimatedModalProps {
   isOpen: boolean;
@@ -33,6 +34,7 @@ export default function AnimatedModal({
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
   const backdropRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const prefersReducedMotion = useReducedMotion();
 
   const sizeClasses = {
     sm: 400,
@@ -81,10 +83,6 @@ export default function AnimatedModal({
   }
 
   if (!isVisible) return null;
-
-  const prefersReducedMotion =
-    typeof window !== "undefined" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   return (
     <div

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useReducedMotion } from "../../hooks/useReducedMotion";
 
 interface AnimatedNumberProps {
   value: number;
@@ -35,12 +36,9 @@ export default function AnimatedNumber({
   const [flashColor, setFlashColor] = useState<"up" | "down" | null>(null);
   const previousValue = useRef(value);
   const animationRef = useRef<number | null>(null);
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
-    const prefersReducedMotion =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
     const startValue = previousValue.current;
     const endValue = value;
     const diff = endValue - startValue;
@@ -89,7 +87,7 @@ export default function AnimatedNumber({
       }
       clearTimeout(flashTimer);
     };
-  }, [value, duration]);
+  }, [value, duration, prefersReducedMotion]);
 
   function formatNumber(num: number): string {
     if (formatCompact) {
@@ -155,14 +153,11 @@ export function AnimatedCounter({
   const [count, setCount] = useState(0);
   const [hasAnimated, setHasAnimated] = useState(false);
   const ref = useRef<HTMLSpanElement>(null);
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
     const el = ref.current;
     if (!el || hasAnimated) return;
-
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -200,7 +195,7 @@ export function AnimatedCounter({
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [end, duration, decimals, hasAnimated]);
+  }, [end, duration, decimals, hasAnimated, prefersReducedMotion]);
 
   return (
     <span

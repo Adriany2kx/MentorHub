@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
+import { useReducedMotion } from "../../hooks/useReducedMotion";
 
 interface AnimatedIconProps {
   icon: LucideIcon;
@@ -42,10 +43,7 @@ export default function AnimatedIcon({
 }: AnimatedIconProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isClicked, setIsClicked] = useState(false);
-
-  const prefersReducedMotion =
-    typeof window !== "undefined" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const prefersReducedMotion = useReducedMotion();
 
   function handleClick() {
     if (prefersReducedMotion) {
@@ -149,10 +147,7 @@ export function IconButton({
   className?: string;
 }) {
   const [isPressed, setIsPressed] = useState(false);
-
-  const prefersReducedMotion =
-    typeof window !== "undefined" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const prefersReducedMotion = useReducedMotion();
 
   const baseStyles: React.CSSProperties = {
     width: 36,
