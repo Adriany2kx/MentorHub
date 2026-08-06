@@ -1,0 +1,13 @@
+# Copy to terraform.tfvars and fill in values
+# DO NOT commit terraform.tfvars to git
+
+aws_region    = "eu-west-1"
+project_name  = "mentorhub"
+environment   = "prod"
+domain_name   = "mentor-hub.app"
+db_password   = "CHANGE_ME_STRONG_PASSWORD"
+
+# Optional overrides
+# container_cpu      = 256
+# container_memory   = 512
+# db_instance_class  = "db.t3.micro"

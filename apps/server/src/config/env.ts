@@ -45,4 +45,12 @@ export const env = {
   // Monitoring
   SENTRY_DSN: process.env.SENTRY_DSN ?? "",
   APP_VERSION: process.env.APP_VERSION ?? "0.0.0",
+
+  // AWS S3 (optional, falls back to local disk if not set)
+  AWS_REGION: process.env.AWS_REGION ?? "eu-west-1",
+  S3_UPLOADS_BUCKET: process.env.S3_UPLOADS_BUCKET ?? "",
+
+  // Clerk Authentication
+  // CLERK_SECRET_KEY is read automatically by @clerk/express
+  // CLERK_PUBLISHABLE_KEY is used by frontend (VITE_CLERK_PUBLISHABLE_KEY)
 } as const;

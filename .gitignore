@@ -59,3 +59,10 @@ apps/server/uploads/
 
 # Working files - local only
 work_in_progress/
+
+# Terraform
+infra/terraform/.terraform/
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.*
+infra/terraform/terraform.tfvars
+infra/terraform/.terraform.lock.hcl
