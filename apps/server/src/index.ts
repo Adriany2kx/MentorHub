@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import compression from "compression";
 import path from "path";
 import { fileURLToPath } from "url";
+import { clerkMiddleware } from "@clerk/express";
 import { env } from "./config/env.js";
 import { swaggerSpec } from "./config/swagger.js";
 import swaggerUi from "swagger-ui-express";
@@ -65,6 +66,9 @@ app.use(express.json());
 
 // Cookie parsing
 app.use(cookieParser());
+
+// Clerk authentication middleware
+app.use(clerkMiddleware());
 
 // Structured request logging
 app.use(requestLogger);

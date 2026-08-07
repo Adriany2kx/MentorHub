@@ -2,6 +2,17 @@ import { captureError } from "./sentry";
 
 const API_BASE = "/api";
 
+// Store access token in memory (not localStorage for security)
+let accessToken: string | null = null;
+
+export function setAccessToken(token: string) {
+  accessToken = token;
+}
+
+export function clearAccessToken() {
+  accessToken = null;
+}
+
 class ApiError extends Error {
   status: number;
   constructor(message: string, status: number) {
@@ -12,9 +23,17 @@ class ApiError extends Error {
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (accessToken) {
+    headers["Authorization"] = `Bearer ${accessToken}`;
+  }
+
   const res = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
-    headers: { "Content-Type": "application/json" },
+    headers,
     ...options,
   });
 
@@ -42,9 +61,16 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 async function requestFormData<T>(path: string, formData: FormData): Promise<T> {
+  const headers: Record<string, string> = {};
+
+  if (accessToken) {
+    headers["Authorization"] = `Bearer ${accessToken}`;
+  }
+
   const res = await fetch(`${API_BASE}${path}`, {
     method: "POST",
     credentials: "include",
+    headers,
     body: formData,
   });
 
@@ -138,52 +164,16 @@ export interface PublicProfile {
   } | null;
 }
 
-// Auth endpoints
-export function register(email: string, password: string, recaptchaToken?: string) {
-  return request<{ user: AuthUser }>("/auth/register", {
-    method: "POST",
-    body: JSON.stringify({ email, password, ...(recaptchaToken && { recaptchaToken }) }),
-  });
-}
-
-export function login(email: string, password: string, recaptchaToken?: string) {
-  return request<{ user: AuthUser }>("/auth/login", {
-    method: "POST",
-    body: JSON.stringify({ email, password, ...(recaptchaToken && { recaptchaToken }) }),
-  });
-}
-
-export function logout() {
-  return request<{ message: string }>("/auth/logout", { method: "POST" });
-}
-
-export function getMe() {
-  return request<{ user: AuthUser }>("/auth/me");
-}
-
-export function resendVerificationEmail() {
-  return request<{ message: string }>("/auth/resend-verification", { method: "POST" });
-}
-
-export function verifyEmail(token: string) {
-  return request<{ message: string }>("/auth/verify-email", {
-    method: "POST",
-    body: JSON.stringify({ token }),
-  });
-}
-
-export function requestReset(email: string) {
-  return request<{ message: string }>("/auth/request-reset", {
+// Auth endpoints (Auth0)
+export function syncUser(email: string) {
+  return request<{ user: AuthUser; created: boolean }>("/auth/sync", {
     method: "POST",
     body: JSON.stringify({ email }),
   });
 }
 
-export function resetPassword(token: string, newPassword: string) {
-  return request<{ message: string }>("/auth/reset-password", {
-    method: "POST",
-    body: JSON.stringify({ token, newPassword }),
-  });
+export function getMe() {
+  return request<{ user: AuthUser }>("/auth/me");
 }
 
 // User profile endpoints

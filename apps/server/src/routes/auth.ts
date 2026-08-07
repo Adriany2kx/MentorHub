@@ -1,131 +1,104 @@
 import { Router } from "express";
 import { z } from "zod";
+import { getAuth } from "@clerk/express";
 import { prisma } from "../lib/prisma.js";
-import { hashPassword, verifyPassword, generateToken, hashToken } from "../lib/hash.js";
-import { createSession, revokeSession, revokeAllUserSessions } from "../lib/session.js";
-import { sendVerificationEmail, sendPasswordResetEmail } from "../lib/email.js";
-import { verifyRecaptcha } from "../lib/recaptcha.js";
 import { logger } from "../lib/logger.js";
 import { requireAuth } from "../middleware/auth.js";
-import { loginLimiter, registerLimiter, resetLimiter } from "../middleware/rateLimiter.js";
-import { env } from "../config/env.js";
 
 const router = Router();
 
-const AUTH_INVALID_MESSAGE = "Invalid email or password";
-const RESET_GENERIC_MESSAGE = "If that email exists, we sent a reset link";
-
-const RegisterBody = z.object({
-  email: z.string().email().transform((e) => e.toLowerCase().trim()),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  recaptchaToken: z.string().optional(),
-});
-
-const LoginBody = z.object({
-  email: z.string().email().transform((e) => e.toLowerCase().trim()),
-  password: z.string().min(1),
-  recaptchaToken: z.string().optional(),
-});
-
-const RequestResetBody = z.object({
+const SyncBody = z.object({
   email: z.string().email().transform((e) => e.toLowerCase().trim()),
 });
-
-const ResetPasswordBody = z.object({
-  token: z.string().min(1),
-  newPassword: z.string().min(8, "Password must be at least 8 characters"),
-});
-
-function setCookie(res: import("express").Response, token: string) {
-  res.cookie(env.COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: env.COOKIE_SECURE,
-    sameSite: env.COOKIE_SAMESITE,
-    maxAge: env.SESSION_TTL_MS,
-    path: "/",
-  });
-}
-
-function clearCookie(res: import("express").Response) {
-  res.clearCookie(env.COOKIE_NAME, {
-    httpOnly: true,
-    secure: env.COOKIE_SECURE,
-    sameSite: env.COOKIE_SAMESITE,
-    path: "/",
-  });
-}
 
 /**
  * @openapi
- * /auth/register:
+ * /auth/sync:
  *   post:
  *     tags: [Auth]
- *     summary: Register a new user account
+ *     summary: Sync Clerk user to database (creates or links user)
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             required: [email, password]
+ *             required: [email]
  *             properties:
  *               email: { type: string, format: email }
- *               password: { type: string, minLength: 8 }
- *               recaptchaToken: { type: string }
  *     responses:
- *       201:
- *         description: User created successfully
+ *       200:
+ *         description: User synced successfully
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
  *                 user: { $ref: '#/components/schemas/User' }
+ *                 created: { type: boolean }
  *       400: { description: Validation error }
- *       409: { description: Email already registered }
+ *       401: { description: Not authenticated }
  */
-router.post("/register", registerLimiter, async (req, res) => {
+router.post("/sync", async (req, res) => {
   try {
-    const parsed = RegisterBody.safeParse(req.body);
+    // Get Clerk user ID from the request
+    const auth = getAuth(req);
+    const clerkId = auth.userId;
+
+    if (!clerkId) {
+      res.status(401).json({ error: "Not authenticated" });
+      return;
+    }
+
+    const parsed = SyncBody.safeParse(req.body);
     if (!parsed.success) {
       res.status(400).json({ error: parsed.error.errors[0].message });
       return;
     }
 
-    const { email, password, recaptchaToken } = parsed.data;
+    const { email } = parsed.data;
 
-    const recaptchaValid = await verifyRecaptcha(recaptchaToken || "", req.ip);
-    if (!recaptchaValid) {
-      res.status(400).json({ error: "CAPTCHA verification failed. Please try again." });
+    // Check if user already exists with this clerkId (stored in auth0Id field)
+    let user = await prisma.user.findUnique({ where: { auth0Id: clerkId } });
+    let created = false;
+
+    if (!user) {
+      // Check if user exists with this email (link existing account)
+      user = await prisma.user.findUnique({ where: { email } });
+
+      if (user) {
+        // Link existing user to Clerk
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { auth0Id: clerkId, isVerified: true },
+        });
+      } else {
+        // Create new user
+        user = await prisma.user.create({
+          data: {
+            email,
+            auth0Id: clerkId, // Store Clerk ID in auth0Id field for compatibility
+            isVerified: true, // Clerk handles email verification
+          },
+        });
+        created = true;
+      }
+    }
+
+    // Check safety status
+    if (user.isBanned) {
+      res.status(403).json({ error: "Account banned" });
       return;
     }
 
-    const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) {
-      res.status(409).json({ error: "Email already registered" });
+    if (user.suspendedUntil && user.suspendedUntil > new Date()) {
+      res.status(403).json({ error: `Account suspended until ${user.suspendedUntil.toISOString()}` });
       return;
     }
 
-    const passwordHash = await hashPassword(password);
-    const verificationToken = generateToken();
-
-    const user = await prisma.user.create({
-      data: {
-        email,
-        passwordHash,
-        verificationToken,
-        verificationTokenExpiry: new Date(Date.now() + env.EMAIL_VERIFICATION_TTL_MS),
-      },
-    });
-
-    sendVerificationEmail(email, verificationToken).catch(err => {
-      logger.error({ err, email }, "Failed to send verification email");
-    });
-
-    const { session: _, token } = await createSession(user.id);
-    setCookie(res, token);
-
-    res.status(201).json({
+    res.json({
       user: {
         id: user.id,
         email: user.email,
@@ -135,120 +108,12 @@ router.post("/register", registerLimiter, async (req, res) => {
         lastName: user.lastName,
         avatarUrl: user.avatarUrl,
       },
+      created,
     });
   } catch (err) {
-    logger.error({ err }, "Registration error");
-    res.status(500).json({ error: "Registration failed. Please try again." });
+    logger.error({ err }, "Auth sync error");
+    res.status(500).json({ error: "Sync failed. Please try again." });
   }
-});
-
-/**
- * @openapi
- * /auth/login:
- *   post:
- *     tags: [Auth]
- *     summary: Login with email and password
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [email, password]
- *             properties:
- *               email: { type: string, format: email }
- *               password: { type: string }
- *               recaptchaToken: { type: string }
- *     responses:
- *       200:
- *         description: Login successful
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 user: { $ref: '#/components/schemas/User' }
- *       401: { description: Invalid credentials }
- *       403: { description: Account banned or suspended }
- */
-router.post("/login", loginLimiter, async (req, res) => {
-  const parsed = LoginBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: AUTH_INVALID_MESSAGE });
-    return;
-  }
-
-  const { email, password, recaptchaToken } = parsed.data;
-
-  if (recaptchaToken) {
-    const recaptchaValid = await verifyRecaptcha(recaptchaToken, req.ip);
-    if (!recaptchaValid) {
-      res.status(400).json({ error: "CAPTCHA verification failed. Please try again." });
-      return;
-    }
-  }
-
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) {
-    res.status(401).json({ error: AUTH_INVALID_MESSAGE });
-    return;
-  }
-
-  const valid = await verifyPassword(user.passwordHash, password);
-  if (!valid) {
-    res.status(401).json({ error: AUTH_INVALID_MESSAGE });
-    return;
-  }
-
-  if (user.isBanned) {
-    res.status(403).json({ error: "Your account has been banned" });
-    return;
-  }
-
-  if (user.suspendedUntil && user.suspendedUntil > new Date()) {
-    res.status(403).json({ error: `Your account is suspended until ${user.suspendedUntil.toISOString()}` });
-    return;
-  }
-
-  const { session: _, token } = await createSession(user.id);
-  setCookie(res, token);
-
-  res.json({
-    user: {
-      id: user.id,
-      email: user.email,
-      isVerified: user.isVerified,
-      role: user.role,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      avatarUrl: user.avatarUrl,
-    },
-  });
-});
-
-/**
- * @openapi
- * /auth/logout:
- *   post:
- *     tags: [Auth]
- *     summary: Logout and revoke session
- *     responses:
- *       200:
- *         description: Logged out successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message: { type: string }
- */
-router.post("/logout", async (req, res) => {
-  const token = req.cookies[env.COOKIE_NAME] as string | undefined;
-  if (token) {
-    await revokeSession(token);
-  }
-  clearCookie(res);
-  res.json({ message: "Logged out" });
 });
 
 /**
@@ -258,7 +123,7 @@ router.post("/logout", async (req, res) => {
  *     tags: [Auth]
  *     summary: Get current authenticated user
  *     security:
- *       - cookieAuth: []
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Current user data
@@ -292,134 +157,6 @@ router.get("/me", requireAuth, async (req, res) => {
   }
 
   res.json({ user });
-});
-
-// POST /api/auth/verify-email
-router.post("/verify-email", resetLimiter, async (req, res) => {
-  const { token } = req.body as { token?: string };
-  if (!token) {
-    res.status(400).json({ error: "Token is required" });
-    return;
-  }
-
-  const user = await prisma.user.findFirst({
-    where: {
-      verificationToken: token,
-      verificationTokenExpiry: { gt: new Date() },
-    },
-  });
-
-  if (!user) {
-    res.status(400).json({ error: "Invalid or expired verification token" });
-    return;
-  }
-
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      isVerified: true,
-      verificationToken: null,
-      verificationTokenExpiry: null,
-    },
-  });
-
-  res.json({ message: "Email verified successfully" });
-});
-
-// POST /api/auth/resend-verification
-router.post("/resend-verification", resetLimiter, requireAuth, async (req, res) => {
-  const user = await prisma.user.findUnique({ where: { id: req.userId } });
-  if (!user) { res.status(404).json({ error: "User not found" }); return; }
-  if (user.isVerified) { res.status(400).json({ error: "Email already verified" }); return; }
-
-  const verificationToken = generateToken();
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      verificationToken,
-      verificationTokenExpiry: new Date(Date.now() + env.EMAIL_VERIFICATION_TTL_MS),
-    },
-  });
-
-  sendVerificationEmail(user.email, verificationToken).catch(err => {
-    logger.error({ err, email: user.email }, "Failed to resend verification email");
-  });
-
-  res.json({ message: "Verification email sent" });
-});
-
-// POST /api/auth/request-reset
-router.post("/request-reset", resetLimiter, async (req, res) => {
-  const parsed = RequestResetBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.json({ message: RESET_GENERIC_MESSAGE });
-    return;
-  }
-
-  const { email } = parsed.data;
-  const user = await prisma.user.findUnique({ where: { email } });
-
-  if (user) {
-    const resetToken = generateToken();
-    const resetTokenH = hashToken(resetToken);
-
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        resetTokenHash: resetTokenH,
-        resetTokenExpiry: new Date(Date.now() + env.PASSWORD_RESET_TTL_MS),
-      },
-    });
-
-    try {
-      await sendPasswordResetEmail(email, resetToken);
-    } catch (err) {
-      logger.error({ err, email }, "Failed to send reset email");
-    }
-  }
-
-  // Always return the same response to prevent email enumeration
-  res.json({ message: RESET_GENERIC_MESSAGE });
-});
-
-// POST /api/auth/reset-password
-router.post("/reset-password", resetLimiter, async (req, res) => {
-  const parsed = ResetPasswordBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.errors[0].message });
-    return;
-  }
-
-  const { token, newPassword } = parsed.data;
-  const tokenH = hashToken(token);
-
-  const user = await prisma.user.findFirst({
-    where: {
-      resetTokenHash: tokenH,
-      resetTokenExpiry: { gt: new Date() },
-    },
-  });
-
-  if (!user) {
-    res.status(400).json({ error: "Invalid or expired reset token" });
-    return;
-  }
-
-  const passwordHash = await hashPassword(newPassword);
-
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      passwordHash,
-      resetTokenHash: null,
-      resetTokenExpiry: null,
-    },
-  });
-
-  // Revoke all existing sessions for security
-  await revokeAllUserSessions(user.id);
-
-  res.json({ message: "Password reset successfully" });
 });
 
 export default router;

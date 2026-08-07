@@ -2,13 +2,12 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
-import { Sun, Moon, ChevronDown, Menu, X, LogOut, User, LayoutDashboard, Calendar, MessageSquare, Target, BookOpen, Settings } from "lucide-react";
+import { Sun, Moon, ChevronDown, LogOut, User, LayoutDashboard, Calendar, MessageSquare, Target, BookOpen, Settings } from "lucide-react";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -42,9 +41,8 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Close menus on route change
+  // Close menu on route change
   useEffect(() => {
-    setMobileOpen(false);
     setMenuOpen(false);
   }, [location.pathname]);
 
@@ -70,8 +68,8 @@ export default function Navbar() {
         <nav
           style={{
             background: isScrolled
-              ? "rgba(255, 255, 255, 0.85)"
-              : "rgba(255, 255, 255, 0.95)",
+              ? "color-mix(in oklab, var(--color-surface) 85%, transparent)"
+              : "color-mix(in oklab, var(--color-surface) 95%, transparent)",
             backdropFilter: "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
             border: "1px solid var(--color-border)",
@@ -96,22 +94,14 @@ export default function Navbar() {
               textDecoration: "none",
               display: "flex",
               alignItems: "center",
-              gap: 6,
+              gap: 8,
             }}
           >
-            <div
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: "var(--radius-sm)",
-                background: "var(--color-green)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <span style={{ color: "#fff", fontSize: 14, fontWeight: 700 }}>M</span>
-            </div>
+            <img
+              src="/favicon.svg"
+              alt="MentorHub"
+              style={{ width: 28, height: 24 }}
+            />
             <span className="hidden sm:inline">MentorHub</span>
           </Link>
 
@@ -191,7 +181,7 @@ export default function Navbar() {
                   style={{
                     fontSize: 14,
                     fontWeight: 600,
-                    background: "var(--color-green)",
+                    background: "var(--color-teal)",
                     color: "#fff",
                     padding: "8px 18px",
                     borderRadius: "var(--radius-full)",
@@ -199,11 +189,11 @@ export default function Navbar() {
                     transition: "all 150ms ease",
                   }}
                   onMouseEnter={e => {
-                    e.currentTarget.style.background = "var(--color-green-dark)";
+                    e.currentTarget.style.background = "var(--color-teal-dark)";
                     e.currentTarget.style.transform = "scale(1.02)";
                   }}
                   onMouseLeave={e => {
-                    e.currentTarget.style.background = "var(--color-green)";
+                    e.currentTarget.style.background = "var(--color-teal)";
                     e.currentTarget.style.transform = "scale(1)";
                   }}
                 >
@@ -238,7 +228,7 @@ export default function Navbar() {
                       width: 32,
                       height: 32,
                       borderRadius: "var(--radius-full)",
-                      background: "var(--color-green)",
+                      background: "var(--color-teal)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -349,103 +339,8 @@ export default function Navbar() {
               </div>
             )}
 
-            {/* Mobile Menu Toggle */}
-            <button
-              className="md:hidden"
-              onClick={() => setMobileOpen(o => !o)}
-              style={{
-                width: 36,
-                height: 36,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: mobileOpen ? "var(--color-green)" : "transparent",
-                border: "none",
-                borderRadius: "var(--radius-full)",
-                cursor: "pointer",
-                color: mobileOpen ? "#fff" : "var(--color-ink-2)",
-                transition: "all 150ms ease",
-              }}
-            >
-              {mobileOpen ? <X size={18} /> : <Menu size={18} />}
-            </button>
           </div>
         </nav>
-
-        {/* Mobile Menu */}
-        {mobileOpen && (
-          <div
-            className="md:hidden"
-            style={{
-              marginTop: 8,
-              background: "rgba(255, 255, 255, 0.95)",
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
-              border: "1px solid var(--color-border)",
-              borderRadius: "var(--radius-lg)",
-              boxShadow: "var(--shadow-float)",
-              padding: 8,
-              animation: "fadeSlideUp 200ms ease-out",
-            }}
-          >
-            {!user ? (
-              <>
-                <MobileLink to="/mentors" label="Browse Mentors" />
-                <MobileLink to="/programs" label="Programs" />
-                <div style={{ height: 1, background: "var(--color-border)", margin: "4px 0" }} />
-                <MobileLink to="/login" label="Log in" />
-                <Link
-                  to="/register"
-                  style={{
-                    display: "block",
-                    textAlign: "center",
-                    marginTop: 8,
-                    padding: "12px",
-                    background: "var(--color-green)",
-                    color: "#fff",
-                    borderRadius: "var(--radius-md)",
-                    fontWeight: 600,
-                    fontSize: 14,
-                    textDecoration: "none",
-                  }}
-                >
-                  Get Started
-                </Link>
-              </>
-            ) : (
-              <>
-                <MobileLink to="/dashboard" label="Dashboard" />
-                <MobileLink to="/mentors" label="Browse Mentors" />
-                <MobileLink to="/bookings" label="My Bookings" />
-                <MobileLink to="/messages" label="Messages" />
-                <MobileLink to="/goals" label="Goals" />
-                <MobileLink to="/resources" label="Resources" />
-                <MobileLink to="/profile/edit" label="Edit Profile" />
-                {isMentor && <MobileLink to="/mentor/programs" label="Manage Programs" />}
-                {isAdmin && <MobileLink to="/admin" label="Admin Panel" />}
-                <div style={{ height: 1, background: "var(--color-border)", margin: "4px 0" }} />
-                <button
-                  onClick={logout}
-                  style={{
-                    display: "block",
-                    width: "100%",
-                    textAlign: "left",
-                    padding: "12px",
-                    fontSize: 14,
-                    fontWeight: 500,
-                    color: "var(--color-error)",
-                    background: "none",
-                    border: "none",
-                    borderRadius: "var(--radius-sm)",
-                    cursor: "pointer",
-                  }}
-                >
-                  Sign out
-                </button>
-              </>
-            )}
-          </div>
-        )}
       </div>
 
       {/* Spacer to push content below floating nav */}
@@ -463,10 +358,10 @@ function NavPill({ to, active, children }: { to: string; active: boolean; childr
       style={{
         fontSize: 14,
         fontWeight: active ? 600 : 500,
-        color: active ? "var(--color-green)" : "var(--color-ink-2)",
+        color: active ? "var(--color-teal)" : "var(--color-ink-2)",
         padding: "8px 14px",
         borderRadius: "var(--radius-full)",
-        background: active ? "var(--color-green-light)" : "transparent",
+        background: active ? "var(--color-teal-bg)" : "transparent",
         textDecoration: "none",
         transition: "all 150ms ease",
       }}
@@ -516,28 +411,3 @@ function DropdownLink({ to, icon: Icon, label }: { to: string; icon: React.Eleme
   );
 }
 
-function MobileLink({ to, label }: { to: string; label: string }) {
-  return (
-    <Link
-      to={to}
-      style={{
-        display: "block",
-        padding: "12px",
-        fontSize: 14,
-        fontWeight: 500,
-        color: "var(--color-ink)",
-        textDecoration: "none",
-        borderRadius: "var(--radius-sm)",
-        transition: "background 150ms ease",
-      }}
-      onMouseEnter={e => {
-        e.currentTarget.style.background = "var(--color-border-soft)";
-      }}
-      onMouseLeave={e => {
-        e.currentTarget.style.background = "transparent";
-      }}
-    >
-      {label}
-    </Link>
-  );
-}

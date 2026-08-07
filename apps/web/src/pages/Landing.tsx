@@ -20,7 +20,7 @@ import { AnimatedCounter } from "../components/animations";
 
 /* ════════════════════════════════════════════════════════════════
    LANDING PAGE — MentorHub
-   Design: Modern Minimalist — clean whites, green accents
+   Design: Sanctuary — warm paper, teal accents, editorial typography
    ════════════════════════════════════════════════════════════════ */
 
 // Scroll reveal hook
@@ -785,6 +785,56 @@ export default function Landing() {
       </section>
 
       {/* ══════════════════════════════════════════════════════════════
+          TRUSTED BY LOGOS
+      ══════════════════════════════════════════════════════════════ */}
+      <section
+        style={{
+          borderTop: "1px solid var(--color-border)",
+          borderBottom: "1px solid var(--color-border)",
+          padding: "32px 0",
+          background: "var(--color-surface)",
+        }}
+      >
+        <div className="wf-page">
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexWrap: "wrap",
+              gap: 40,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 500,
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                color: "var(--color-muted)",
+              }}
+            >
+              Mentors from
+            </span>
+            {["Google", "Meta", "Stripe", "Airbnb", "Netflix", "Spotify"].map((co) => (
+              <span
+                key={co}
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: 18,
+                  fontWeight: 500,
+                  color: "var(--color-muted)",
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                {co}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════
           AI FEATURES SECTION
       ══════════════════════════════════════════════════════════════ */}
       <section
@@ -913,9 +963,134 @@ export default function Landing() {
       </section>
 
       {/* ══════════════════════════════════════════════════════════════
-          FEATURED MENTORS
+          HOW IT WORKS
       ══════════════════════════════════════════════════════════════ */}
       <section style={{ padding: "80px 0" }}>
+        <div className="wf-page">
+          <RevealSection>
+            <div style={{ textAlign: "center", marginBottom: 56 }}>
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  color: "var(--color-teal)",
+                  marginBottom: 12,
+                }}
+              >
+                Simple Process
+              </div>
+              <h2 className="wf-h1" style={{ margin: 0 }}>
+                How it works
+              </h2>
+            </div>
+          </RevealSection>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: 32,
+              maxWidth: 1000,
+              margin: "0 auto",
+            }}
+          >
+            {[
+              {
+                step: "01",
+                title: "Tell us your goals",
+                desc: "Share where you are in your career and where you want to go. Our AI analyzes your profile to understand your unique needs.",
+                icon: Target,
+              },
+              {
+                step: "02",
+                title: "Get matched",
+                desc: "Browse AI-curated mentor recommendations or explore our full directory. Filter by industry, expertise, and availability.",
+                icon: Users,
+              },
+              {
+                step: "03",
+                title: "Start growing",
+                desc: "Book your first session. Get actionable advice, accountability, and a clear path forward from someone who's been there.",
+                icon: TrendingUp,
+              },
+            ].map((item, i) => (
+              <RevealSection key={item.step} delay={i * 100}>
+                <div
+                  style={{
+                    background: "var(--color-surface)",
+                    border: "1px solid var(--color-border)",
+                    borderRadius: "var(--radius-lg)",
+                    padding: 32,
+                    position: "relative",
+                    height: "100%",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontFamily: "var(--font-display)",
+                      fontSize: 48,
+                      fontWeight: 400,
+                      color: "var(--color-teal-soft)",
+                      lineHeight: 1,
+                      marginBottom: 20,
+                    }}
+                  >
+                    {item.step}
+                  </div>
+                  <div
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: "var(--radius-md)",
+                      background: "var(--color-teal-bg)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginBottom: 16,
+                    }}
+                  >
+                    <item.icon size={22} style={{ color: "var(--color-teal)" }} />
+                  </div>
+                  <h3
+                    style={{
+                      fontSize: 18,
+                      fontWeight: 600,
+                      color: "var(--color-ink)",
+                      margin: "0 0 10px",
+                    }}
+                  >
+                    {item.title}
+                  </h3>
+                  <p
+                    style={{
+                      fontSize: 14,
+                      color: "var(--color-ink-2)",
+                      lineHeight: 1.6,
+                      margin: 0,
+                    }}
+                  >
+                    {item.desc}
+                  </p>
+                </div>
+              </RevealSection>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          FEATURED MENTORS
+      ══════════════════════════════════════════════════════════════ */}
+      <section
+        style={{
+          background: "var(--color-surface)",
+          borderTop: "1px solid var(--color-border)",
+          borderBottom: "1px solid var(--color-border)",
+          padding: "80px 0",
+        }}
+      >
         <div className="wf-page">
           <RevealSection>
             <div
@@ -1161,14 +1336,169 @@ export default function Landing() {
       </section>
 
       {/* ══════════════════════════════════════════════════════════════
-          FINAL CTA
+          TESTIMONIALS
       ══════════════════════════════════════════════════════════════ */}
       <section style={{ padding: "80px 0" }}>
         <div className="wf-page">
           <RevealSection>
+            <div style={{ textAlign: "center", marginBottom: 56 }}>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  color: "var(--color-teal)",
+                  marginBottom: 12,
+                }}
+              >
+                <Star size={14} style={{ fill: "var(--color-gold)", color: "var(--color-gold)" }} />
+                Success Stories
+              </div>
+              <h2 className="wf-h1" style={{ margin: 0 }}>
+                What mentees are saying
+              </h2>
+            </div>
+          </RevealSection>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+              gap: 24,
+              maxWidth: 1100,
+              margin: "0 auto",
+            }}
+          >
+            {[
+              {
+                quote:
+                  "My mentor helped me negotiate a 40% salary increase when switching jobs. The ROI on mentorship is insane.",
+                name: "Marcus Chen",
+                role: "Senior Engineer → Staff Engineer",
+                company: "Stripe",
+              },
+              {
+                quote:
+                  "I was stuck at the same level for 3 years. After 4 sessions, I had a clear roadmap and got promoted within 6 months.",
+                name: "Priya Sharma",
+                role: "Product Manager",
+                company: "Airbnb",
+              },
+              {
+                quote:
+                  "The AI matching was spot-on. My mentor understood exactly where I was coming from because she'd been there.",
+                name: "James Wilson",
+                role: "Career Changer → UX Designer",
+                company: "Figma",
+              },
+            ].map((t, i) => (
+              <RevealSection key={t.name} delay={i * 100}>
+                <div
+                  style={{
+                    background: "var(--color-surface)",
+                    border: "1px solid var(--color-border)",
+                    borderRadius: "var(--radius-lg)",
+                    padding: 28,
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
+                  {/* Stars */}
+                  <div style={{ display: "flex", gap: 2, marginBottom: 16 }}>
+                    {Array.from({ length: 5 }).map((_, si) => (
+                      <Star
+                        key={si}
+                        size={16}
+                        style={{ color: "var(--color-gold)", fill: "var(--color-gold)" }}
+                      />
+                    ))}
+                  </div>
+
+                  <blockquote
+                    style={{
+                      fontFamily: "var(--font-display)",
+                      fontSize: 17,
+                      fontStyle: "italic",
+                      color: "var(--color-ink)",
+                      lineHeight: 1.6,
+                      margin: 0,
+                      flex: 1,
+                    }}
+                  >
+                    "{t.quote}"
+                  </blockquote>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                      marginTop: 20,
+                      paddingTop: 16,
+                      borderTop: "1px solid var(--color-border-soft)",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: "50%",
+                        background: "var(--color-teal-soft)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 14,
+                        fontWeight: 600,
+                        color: "var(--color-teal)",
+                      }}
+                    >
+                      {t.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          fontSize: 15,
+                          fontWeight: 600,
+                          color: "var(--color-ink)",
+                        }}
+                      >
+                        {t.name}
+                      </div>
+                      <div style={{ fontSize: 13, color: "var(--color-muted)" }}>
+                        {t.role} · {t.company}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </RevealSection>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          FINAL CTA
+      ══════════════════════════════════════════════════════════════ */}
+      <section
+        style={{
+          background: "var(--color-surface)",
+          borderTop: "1px solid var(--color-border)",
+          padding: "80px 0",
+        }}
+      >
+        <div className="wf-page">
+          <RevealSection>
             <div
               style={{
-                background: "linear-gradient(135deg, var(--color-teal) 0%, #1d4a45 100%)",
+                background: "linear-gradient(135deg, var(--color-teal) 0%, var(--color-teal-dark) 100%)",
                 borderRadius: "var(--radius-lg)",
                 padding: "64px 40px",
                 textAlign: "center",

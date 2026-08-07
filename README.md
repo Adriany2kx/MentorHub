@@ -94,7 +94,7 @@
 ### Deployment
 - Fully Dockerised with Docker Compose
 - Nginx reverse proxy with HTTPS (Let's Encrypt)
-- Hosted on DigitalOcean
+- Target: AWS (ECS Fargate + RDS + S3)
 - Prisma migrations run automatically on container start
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>

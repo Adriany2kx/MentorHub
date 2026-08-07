@@ -1,88 +1,110 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap");
 @import "tailwindcss";
 
 /* ============================================================
-   MentorHub — Modern Minimalist Design System
-   Clean whites, modern greens, simple & elegant
+   MentorHub — Sanctuary Design System
+   Warm, calm, premium editorial
+   Palette: warm paper, teal accents, dark ink
    ============================================================ */
 
 @theme {
-  /* — Core palette — Clean minimalist — */
-  --color-ink:        #111111;
-  --color-ink-2:      #374151;
-  --color-ink-3:      #6b7280;
-  --color-muted:      #9ca3af;
-  --color-faint:      #d1d5db;
-  --color-green:      #10b981;
-  --color-green-dark: #059669;
-  --color-green-light:#d1fae5;
-  --color-blue:       #10b981;
-  --color-blue-hover: #059669;
-  --color-bg:         #ffffff;
-  --color-surface:    #ffffff;
-  --color-border:     #e5e7eb;
-  --color-border-soft:#f3f4f6;
-  --color-success:    #10b981;
-  --color-warning:    #f59e0b;
-  --color-error:      #ef4444;
-  --color-gold:       #f59e0b;
+  /* — Core palette — Sanctuary — */
+  --color-ink:        #221f1b;
+  --color-ink-2:      #3d3a36;
+  --color-ink-3:      #6b6660;
+  --color-muted:      #9c9791;
+  --color-faint:      #d4d0cb;
+  --color-teal:       #2e6a64;
+  --color-teal-dark:  #1f4a45;
+  --color-teal-light: #d4e8e6;
+  --color-blue:       #2e6a64;
+  --color-blue-hover: #1f4a45;
+  --color-bg:         #f3eee6;
+  --color-surface:    #faf8f5;
+  --color-border:     #e0dbd4;
+  --color-border-soft:#ebe7e1;
+  --color-success:    #2e7d5a;
+  --color-warning:    #c47f17;
+  --color-error:      #b54343;
+  --color-gold:       #c9a227;
 
   /* — Strategic accent palette — */
-  --color-accent:         #10b981;
-  --color-accent-hover:   #059669;
-  --color-accent-soft:    #d1fae5;
-  --color-teal:           #10b981;
-  --color-teal-soft:      #d1fae5;
-  --color-teal-bg:        #ecfdf5;
-  --color-info-soft:      #eff6ff;
+  --color-accent:         #2e6a64;
+  --color-accent-hover:   #1f4a45;
+  --color-accent-soft:    #d4e8e6;
+  --color-teal-soft:      #d4e8e6;
+  --color-teal-bg:        #e8f2f0;
+  --color-info-soft:      #e4eef8;
 
   /* — Semantic backgrounds/borders — */
-  --color-success-bg:     #ecfdf5;
-  --color-success-border: #a7f3d0;
-  --color-warning-bg:     #fffbeb;
-  --color-warning-border: #fde68a;
-  --color-error-bg:       #fef2f2;
-  --color-error-border:   #fecaca;
-  --color-info-bg:        #eff6ff;
-  --color-info-border:    #bfdbfe;
+  --color-success-bg:     #e8f4ed;
+  --color-success-border: #a8d5bf;
+  --color-warning-bg:     #fdf6e3;
+  --color-warning-border: #f0d896;
+  --color-error-bg:       #fceaea;
+  --color-error-border:   #e8b4b4;
+  --color-info-bg:        #e4eef8;
+  --color-info-border:    #a8c8e8;
 
   /* — Hero/CTA + Sidebar sections — */
-  --color-hero-bg:    #10b981;
-  --color-sidebar-bg: #111111;
+  --color-hero-bg:    #2e6a64;
+  --color-sidebar-bg: #221f1b;
 
   /* — Legacy aliases (keep pages compiling) — */
-  --color-paper:   #ffffff;
-  --color-paper-2: #f9fafb;
-  --color-line:    #e5e7eb;
-  --color-link:    #10b981;
-  --color-warn:    #f59e0b;
+  --color-paper:   #f3eee6;
+  --color-paper-2: #ebe7e1;
+  --color-line:    #e0dbd4;
+  --color-link:    #2e6a64;
+  --color-warn:    #c47f17;
 
-  /* — Typography — Clean modern — */
-  --font-sans:    "Inter", system-ui, -apple-system, sans-serif;
-  --font-mono:    ui-monospace, "SF Mono", monospace;
-  --font-display: "Inter", system-ui, -apple-system, sans-serif;
+  /* — Typography — Editorial — */
+  --font-sans:    "Hanken Grotesk", system-ui, -apple-system, sans-serif;
+  --font-mono:    "IBM Plex Mono", ui-monospace, monospace;
+  --font-display: "Newsreader", Georgia, serif;
+
+  /* — Spacing scale — 4px grid — */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+
+  /* — Z-index ladder — */
+  --z-base:     1;
+  --z-dropdown: 10;
+  --z-sticky:   20;
+  --z-modal:    50;
+  --z-toast:    60;
 
   /* — Layout — */
   --sidebar-width:  220px;
   --topnav-height:  64px;
   --content-max:    1200px;
 
-  /* — Radius — modern rounded — */
-  --radius-sm:   8px;
-  --radius-md:   12px;
-  --radius-lg:   16px;
+  /* — Radius — */
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
   --radius-full: 9999px;
 
-  /* — Shadows — clean neutral — */
-  --shadow-sm:       0 1px 2px rgba(0,0,0,0.05);
-  --shadow-md:       0 4px 6px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.03);
-  --shadow-lg:       0 10px 25px rgba(0,0,0,0.08), 0 4px 10px rgba(0,0,0,0.04);
-  --shadow-xl:       0 20px 40px rgba(0,0,0,0.12);
-  --shadow-card:     0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-dropdown: 0 10px 25px rgba(0,0,0,0.1);
-  --shadow-modal:    0 25px 50px rgba(0,0,0,0.15);
-  --shadow-topnav:   0 1px 3px rgba(0,0,0,0.05);
-  --shadow-float:    0 8px 30px rgba(0,0,0,0.12);
+  /* — Shadows — warm tinted — */
+  --shadow-subtle:   0 1px 2px rgba(34,31,27,0.04);
+  --shadow-medium:   0 4px 8px rgba(34,31,27,0.06), 0 2px 4px rgba(34,31,27,0.04);
+  --shadow-elevated: 0 10px 24px rgba(34,31,27,0.08), 0 4px 10px rgba(34,31,27,0.04);
+  --shadow-modal:    0 24px 48px rgba(34,31,27,0.12);
+  /* — Aliases for existing code — */
+  --shadow-sm:       var(--shadow-subtle);
+  --shadow-md:       var(--shadow-medium);
+  --shadow-lg:       var(--shadow-elevated);
+  --shadow-xl:       var(--shadow-modal);
+  --shadow-card:     0 1px 3px rgba(34,31,27,0.05), 0 1px 2px rgba(34,31,27,0.03);
+  --shadow-dropdown: 0 8px 20px rgba(34,31,27,0.10);
+  --shadow-topnav:   0 1px 3px rgba(34,31,27,0.04);
+  --shadow-float:    0 8px 28px rgba(34,31,27,0.10);
 }
 
 /* ============================================================
@@ -358,6 +380,17 @@ html, body, #root {
     font-weight: 500;
   }
   .wf-btn-link:hover { color: var(--color-blue-hover); text-decoration: underline; }
+
+  .wf-btn-ghost {
+    background: transparent;
+    color: var(--color-ink-2);
+    border: none;
+  }
+  .wf-btn-ghost:hover:not(:disabled) {
+    background: color-mix(in oklab, var(--color-ink) 5%, transparent);
+    color: var(--color-ink);
+    text-decoration: none;
+  }
 
   /* ---- Form fields ----------------------------------------- */
   .wf-label {
@@ -792,8 +825,8 @@ html, body, #root {
   }
   a.wf-card:hover, button.wf-card:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-dropdown);
-    border-color: var(--color-blue);
+    box-shadow: var(--shadow-elevated);
+    border-color: var(--color-teal);
   }
   a.wf-card:active, button.wf-card:active {
     transform: translateY(0);
@@ -1429,6 +1462,30 @@ html, body, #root {
   animation: goalCompletedEnter 450ms var(--ease-out-expo) forwards;
 }
 
+/* Input error shake */
+@keyframes inputShake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+/* Badge pulse — for live/new indicators */
+@keyframes badgePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.02); }
+}
+
+/* Avatar status pulse — for online indicator */
+@keyframes statusPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(46, 125, 90, 0.4); }
+  50% { box-shadow: 0 0 0 4px rgba(46, 125, 90, 0); }
+}
+
+/* Button hover lift */
+.wf-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
 /* ------------------------------------------------------------
    OVERDRIVE: cinematic state transitions (progressive)
    ------------------------------------------------------------ */
@@ -1579,6 +1636,8 @@ html, body, #root {
   .star-pop              { animation: none !important; }
   .wf-goal-completed     { animation: none !important; opacity: 1 !important; transform: none !important; }
   .wf-toast              { animation: none !important; opacity: 1 !important; transform: none !important; }
+  .wf-btn:hover:not(:disabled) { transform: none !important; }
+  .wf-btn:active:not(:disabled) { transform: none !important; }
   ::view-transition-old(mentor-results),
   ::view-transition-new(mentor-results),
   ::view-transition-old(bookings-list),
@@ -1589,68 +1648,72 @@ html, body, #root {
 }
 
 /* ============================================================
-   DARK MODE — clean dark with green accents
+   DARK MODE — Sanctuary dark variant
    Applied when <html data-theme="dark">
    ============================================================ */
 [data-theme="dark"] {
   /* Core palette */
-  --color-ink:        #f9fafb;
-  --color-ink-2:      #e5e7eb;
-  --color-ink-3:      #9ca3af;
-  --color-blue:       #34d399;
-  --color-blue-hover: #6ee7b7;
-  --color-bg:         #111111;
-  --color-surface:    #1a1a1a;
-  --color-border:     #2a2a2a;
-  --color-border-soft:#222222;
-  --color-muted:      #6b7280;
-  --color-success:    #34d399;
-  --color-warning:    #fbbf24;
-  --color-error:      #f87171;
-  --color-hero-bg:    #059669;
+  --color-ink:        #f5f2ed;
+  --color-ink-2:      #d8d4ce;
+  --color-ink-3:      #a09a93;
+  --color-teal:       #5aada5;
+  --color-teal-dark:  #3d8880;
+  --color-blue:       #5aada5;
+  --color-blue-hover: #78c4bc;
+  --color-bg:         #1a1816;
+  --color-surface:    #252320;
+  --color-border:     #3a3734;
+  --color-border-soft:#302e2b;
+  --color-muted:      #7a756e;
+  --color-success:    #4da87a;
+  --color-warning:    #daa035;
+  --color-error:      #d06060;
+  --color-hero-bg:    #2e6a64;
 
   /* Accent palette (dark) */
-  --color-accent:         #34d399;
-  --color-accent-hover:   #6ee7b7;
-  --color-accent-soft:    #064e3b;
-  --color-teal:           #34d399;
-  --color-teal-soft:      #064e3b;
-  --color-teal-bg:        #022c22;
-  --color-info-soft:      #1e3a5f;
+  --color-accent:         #5aada5;
+  --color-accent-hover:   #78c4bc;
+  --color-accent-soft:    #1f3533;
+  --color-teal-soft:      #1f3533;
+  --color-teal-bg:        #162624;
+  --color-info-soft:      #1e2f3d;
 
-  --color-success-bg:     #022c22;
-  --color-success-border: #065f46;
-  --color-warning-bg:     #451a03;
-  --color-warning-border: #92400e;
-  --color-error-bg:       #450a0a;
-  --color-error-border:   #991b1b;
-  --color-info-bg:        #1e3a5f;
-  --color-info-border:    #1d4ed8;
+  --color-success-bg:     #162b22;
+  --color-success-border: #2d5943;
+  --color-warning-bg:     #2d2415;
+  --color-warning-border: #5a4520;
+  --color-error-bg:       #2d1a1a;
+  --color-error-border:   #5a3030;
+  --color-info-bg:        #1e2f3d;
+  --color-info-border:    #3a5a7a;
 
   /* Legacy aliases */
-  --color-paper:   #111111;
-  --color-paper-2: #1a1a1a;
-  --color-line:    #2a2a2a;
-  --color-link:    #34d399;
-  --color-warn:    #fbbf24;
+  --color-paper:   #1a1816;
+  --color-paper-2: #252320;
+  --color-line:    #3a3734;
+  --color-link:    #5aada5;
+  --color-warn:    #daa035;
 
   /* Shadows */
-  --shadow-sm:       0 1px 2px rgba(0,0,0,0.3);
-  --shadow-md:       0 4px 6px rgba(0,0,0,0.4);
-  --shadow-lg:       0 10px 25px rgba(0,0,0,0.5);
-  --shadow-xl:       0 20px 40px rgba(0,0,0,0.6);
-  --shadow-card:     0 2px 8px rgba(0,0,0,0.4);
-  --shadow-dropdown: 0 10px 25px rgba(0,0,0,0.5);
-  --shadow-modal:    0 25px 50px rgba(0,0,0,0.6);
-  --shadow-topnav:   0 1px 3px rgba(0,0,0,0.3);
-  --shadow-float:    0 8px 30px rgba(0,0,0,0.4);
+  --shadow-subtle:   0 1px 2px rgba(0,0,0,0.25);
+  --shadow-medium:   0 4px 8px rgba(0,0,0,0.35);
+  --shadow-elevated: 0 10px 24px rgba(0,0,0,0.45);
+  --shadow-sm:       var(--shadow-subtle);
+  --shadow-md:       var(--shadow-medium);
+  --shadow-lg:       var(--shadow-elevated);
+  --shadow-xl:       0 24px 48px rgba(0,0,0,0.55);
+  --shadow-card:     0 2px 8px rgba(0,0,0,0.35);
+  --shadow-dropdown: 0 10px 25px rgba(0,0,0,0.45);
+  --shadow-modal:    0 25px 50px rgba(0,0,0,0.55);
+  --shadow-topnav:   0 1px 3px rgba(0,0,0,0.25);
+  --shadow-float:    0 8px 30px rgba(0,0,0,0.40);
 }
 
 /* Dark mode — badge bg tints */
-[data-theme="dark"] .wf-badge-success { background: var(--color-success-bg); color: #86efac; border-color: var(--color-success-border); }
-[data-theme="dark"] .wf-badge-warn    { background: var(--color-warning-bg); color: #fcd34d; border-color: var(--color-warning-border); }
-[data-theme="dark"] .wf-badge-error   { background: var(--color-error-bg); color: #fca5a5; border-color: var(--color-error-border); }
-[data-theme="dark"] .wf-badge-info    { background: var(--color-info-bg); color: #a5b4fc; border-color: var(--color-info-border); }
+[data-theme="dark"] .wf-badge-success { background: var(--color-success-bg); color: #78c9a0; border-color: var(--color-success-border); }
+[data-theme="dark"] .wf-badge-warn    { background: var(--color-warning-bg); color: #eabb5a; border-color: var(--color-warning-border); }
+[data-theme="dark"] .wf-badge-error   { background: var(--color-error-bg); color: #e08080; border-color: var(--color-error-border); }
+[data-theme="dark"] .wf-badge-info    { background: var(--color-info-bg); color: #8ab4d8; border-color: var(--color-info-border); }
 [data-theme="dark"] .wf-badge-neutral { background: var(--color-muted); color: var(--color-ink-3); border-color: var(--color-border); }
 
 [data-theme="dark"] html,

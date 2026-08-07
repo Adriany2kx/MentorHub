@@ -1,154 +1,219 @@
-import { useRef, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import ReCAPTCHA from "react-google-recaptcha";
-import { Eye, EyeOff } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import { SignUp } from "@clerk/react";
 import { useAuth } from "../context/AuthContext";
-import { registerSchema } from "../lib/validators";
+import { User, Award, Check } from "lucide-react";
 
-function PasswordField({
-  id,
-  label,
-  value,
-  onChange,
-  autoComplete,
-}: {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  autoComplete: string;
-}) {
-  const [show, setShow] = useState(false);
+type Role = "mentee" | "mentor";
+
+export default function Register() {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [selectedRole, setSelectedRole] = useState<Role>(
+    searchParams.get("role") === "mentor" ? "mentor" : "mentee"
+  );
+
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/dashboard");
+    }
+  }, [loading, user, navigate]);
+
+  useEffect(() => {
+    localStorage.setItem("mentorHub_signupRole", selectedRole);
+  }, [selectedRole]);
+
+  if (loading) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: "var(--color-bg)" }}
+      >
+        <div className="wf-loading-spinner-lg" />
+      </div>
+    );
+  }
+
+  const benefits = selectedRole === "mentee"
+    ? ["AI-powered mentor matching", "Book sessions in minutes", "Track your goals"]
+    : ["Set your own rates", "Build your practice", "Get paid weekly"];
+
   return (
-    <div>
-      <label htmlFor={id} className="wf-label">{label}</label>
-      <div style={{ position: "relative" }}>
-        <input
-          id={id}
-          type={show ? "text" : "password"}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          required
-          autoComplete={autoComplete}
-          className="wf-input"
-          style={{ paddingRight: 40 }}
-        />
-        <button
-          type="button"
-          onClick={() => setShow((v) => !v)}
-          aria-label={show ? "Hide password" : "Show password"}
+    <main
+      style={{
+        background: "var(--color-bg)",
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "48px 16px",
+      }}
+    >
+      <div style={{ width: "100%", maxWidth: 420 }}>
+        {/* Logo */}
+        <div style={{ textAlign: "center", marginBottom: 24 }}>
+          <Link
+            to="/"
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: 24,
+              fontWeight: 600,
+              color: "var(--color-ink)",
+              textDecoration: "none",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <img src="/favicon.svg" alt="" style={{ width: 28, height: 24 }} />
+            Mentor<span style={{ fontStyle: "italic", fontWeight: 400 }}>Hub</span>
+          </Link>
+        </div>
+
+        {/* Heading */}
+        <div style={{ textAlign: "center", marginBottom: 28 }}>
+          <h1
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: 28,
+              fontWeight: 500,
+              color: "var(--color-ink)",
+              marginBottom: 8,
+            }}
+          >
+            Create your account
+          </h1>
+          <p style={{ color: "var(--color-ink-2)", fontSize: 15 }}>
+            Join thousands growing with mentorship
+          </p>
+        </div>
+
+        {/* Role Toggle */}
+        <div
           style={{
-            position: "absolute",
-            right: 10,
-            top: "50%",
-            transform: "translateY(-50%)",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            color: "var(--color-ink-3)",
-            padding: 4,
             display: "flex",
-            alignItems: "center",
+            gap: 8,
+            marginBottom: 20,
+            padding: 4,
+            background: "var(--color-surface)",
+            border: "1px solid var(--color-border)",
+            borderRadius: "var(--radius-md)",
           }}
         >
-          {show ? <Eye size={16} /> : <EyeOff size={16} />}
-        </button>
+          <RoleTab
+            selected={selectedRole === "mentee"}
+            onClick={() => setSelectedRole("mentee")}
+            icon={<User size={16} />}
+            label="Find a mentor"
+          />
+          <RoleTab
+            selected={selectedRole === "mentor"}
+            onClick={() => setSelectedRole("mentor")}
+            icon={<Award size={16} />}
+            label="Become a mentor"
+          />
+        </div>
+
+        {/* Benefits */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: 16,
+            marginBottom: 24,
+            flexWrap: "wrap",
+          }}
+        >
+          {benefits.map((text) => (
+            <div
+              key={text}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
+                fontSize: 13,
+                color: "var(--color-ink-2)",
+              }}
+            >
+              <Check size={14} style={{ color: "var(--color-teal)" }} />
+              {text}
+            </div>
+          ))}
+        </div>
+
+        {/* Clerk SignUp */}
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <SignUp
+            routing="hash"
+            signInUrl="/login"
+            appearance={{
+              elements: {
+                rootBox: { width: "100%" },
+                card: {
+                  boxShadow: "var(--shadow-elevated)",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: "var(--radius-lg)",
+                },
+                headerTitle: {
+                  fontFamily: "var(--font-display)",
+                  color: "var(--color-ink)",
+                },
+                headerSubtitle: {
+                  color: "var(--color-ink-2)",
+                },
+                formButtonPrimary: {
+                  background: "var(--color-teal)",
+                  "&:hover": {
+                    background: "var(--color-teal-dark)",
+                  },
+                },
+                footerActionLink: {
+                  color: "var(--color-teal)",
+                },
+              },
+            }}
+          />
+        </div>
       </div>
-    </div>
+    </main>
   );
 }
 
-export default function Register() {
-  const { register } = useAuth();
-  const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
-  const recaptchaRef = useRef<ReCAPTCHA>(null);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-
-    const result = registerSchema.safeParse({ email, password, confirmPassword });
-    if (!result.success) {
-      setError(result.error.issues[0].message);
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      await register(email, password, recaptchaToken || undefined);
-      navigate("/verify-email?sent=true");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Registration failed. Please try again.");
-      setRecaptchaToken(null);
-      recaptchaRef.current?.reset();
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
+function RoleTab({
+  selected,
+  onClick,
+  icon,
+  label,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+}) {
   return (
-    <div className="min-h-screen" style={{ background: "var(--color-bg)" }}>
-      <div className="flex items-center justify-center px-4 py-16">
-        <div className="wf-card w-full max-w-md p-8">
-          <div className="text-center mb-6">
-            <h1 className="wf-h2 mb-2">Create Account</h1>
-            <p className="wf-text" style={{ color: "var(--color-ink-2)" }}>Join MentorHub to get started</p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label htmlFor="email" className="wf-label">Email</label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoFocus
-                autoComplete="email"
-                className="wf-input"
-              />
-            </div>
-            <PasswordField
-              id="password"
-              label="Password"
-              value={password}
-              onChange={setPassword}
-              autoComplete="new-password"
-            />
-            <PasswordField
-              id="confirmPassword"
-              label="Confirm Password"
-              value={confirmPassword}
-              onChange={setConfirmPassword}
-              autoComplete="new-password"
-            />
-            <ReCAPTCHA
-              ref={recaptchaRef}
-              sitekey="6LdHe_csAAAAAG54AZsWx97lL6EPFhZxyh18SuRW"
-              onChange={setRecaptchaToken}
-            />
-            {error && <p role="alert" className="wf-error-text">{error}</p>}
-            <button
-              type="submit"
-              className="wf-btn wf-btn-primary w-full mt-2"
-              disabled={isLoading || recaptchaToken === null}
-            >
-              {isLoading ? "Creating account…" : "Create Account"}
-            </button>
-          </form>
-
-          <p className="wf-text text-center mt-6">
-            Already have an account? <Link to="/login" className="text-link">Log in</Link>
-          </p>
-        </div>
-      </div>
-    </div>
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        flex: 1,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6,
+        padding: "10px 12px",
+        fontSize: 14,
+        fontWeight: selected ? 600 : 500,
+        color: selected ? "var(--color-teal)" : "var(--color-ink-2)",
+        background: selected ? "var(--color-teal-bg)" : "transparent",
+        border: "none",
+        borderRadius: "var(--radius-sm)",
+        cursor: "pointer",
+        transition: "all 150ms ease",
+      }}
+    >
+      {icon}
+      {label}
+    </button>
   );
 }

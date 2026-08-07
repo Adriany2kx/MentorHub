@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+ import { useState, useCallback } from "react";
 import { Check, ChevronRight, ChevronLeft, X } from "lucide-react";
 
 export interface OnboardingStep {

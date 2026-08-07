@@ -11,9 +11,8 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Landing = lazy(() => import("./pages/Landing"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
-const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
-const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
-const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+// Auth0 handles email verification and password reset
+// These pages are no longer needed
 const ProfileSetup = lazy(() => import("./pages/ProfileSetup"));
 const ProfileEdit = lazy(() => import("./pages/ProfileEdit"));
 const BecomeMentor = lazy(() => import("./pages/BecomeMentor"));
@@ -49,6 +48,7 @@ const MentorPayments = lazy(() => import("./pages/MentorPayments"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
+const UITest = lazy(() => import("./pages/UITest"));
 
 function RouteFallback() {
   return <LoadingState title="Loading page" message="Building the next screen..." lines={4} />;
@@ -58,7 +58,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return <LoadingState fullScreen title="Checking your session" message="Securing your dashboard access." />;
   if (!user) return <Navigate to="/login" />;
-  if (!user.isVerified) return <Navigate to="/verify-email?sent=true" />;
+  // Auth0 handles email verification
   return <>{children}</>;
 }
 
@@ -100,16 +100,14 @@ function App() {
           <Route path="/programs" element={<ProgramList />} />
           <Route path="/programs/:id" element={<ProgramDetail />} />
           <Route path="/users/:id" element={<PublicProfile />} />
-          <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
+          <Route path="/ui-test" element={<UITest />} />
 
           {/* Guest only */}
           <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
           <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
-          <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
 
           {/* Protected */}
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

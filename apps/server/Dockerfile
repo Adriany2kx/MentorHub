@@ -4,12 +4,12 @@ WORKDIR /app
 # Install dependencies
 FROM base AS deps
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 # Build
 FROM base AS build
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 COPY . .
 RUN npm run build
 
@@ -28,6 +28,9 @@ COPY package*.json ./
 
 # Generate Prisma client
 RUN npx prisma generate
+
+# Create directories for node user
+RUN mkdir -p /app/logs /app/uploads/avatars /app/uploads/resources && chown -R node:node /app/logs /app/uploads
 
 USER node
 EXPOSE 3000

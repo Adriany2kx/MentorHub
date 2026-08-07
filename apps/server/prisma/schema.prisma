@@ -54,7 +54,8 @@ enum PaymentStatus {
 model User {
   id                      String    @id @default(cuid())
   email                   String    @unique
-  passwordHash            String
+  auth0Id                 String?   @unique
+  passwordHash            String?
   isVerified              Boolean   @default(false)
   verificationToken       String?
   verificationTokenExpiry DateTime?

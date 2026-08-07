@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
-import { CheckCircle, X, Sparkles, User, Calendar, TrendingUp, Clock, Target } from "lucide-react";
+import { CheckCircle, X, Sparkles, User, Calendar, TrendingUp, Clock, Target, CalendarCheck, MessageSquare, Flag, Users, BookOpen, UserCog, Layers, CalendarClock } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import RoleBadge from "../components/RoleBadge";
 import StatusBadge from "../components/StatusBadge";
 import { AnimatedNumber } from "../components/animations";
-import { listMySessions, listMyBookings, getMentorRecommendations, getProfileQuality, getMentor, getProgressInsights } from "../lib/api";
-import type { SessionDetail as ISessionDetail, Booking, AiMentorRecommendation, AiProfileQuality, MentorDetail, AiInsights } from "../lib/api";
+import { listMySessions, listMyBookings, getMentorRecommendations, getMentor, getProgressInsights } from "../lib/api";
+import type { SessionDetail as ISessionDetail, Booking, AiMentorRecommendation, MentorDetail, AiInsights } from "../lib/api";
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -16,7 +16,6 @@ export default function Dashboard() {
   const [recommendedMentors, setRecommendedMentors] = useState<Record<string, MentorDetail>>({});
   const [recLoading, setRecLoading] = useState(false);
   const [profileInsufficient, setProfileInsufficient] = useState(false);
-  const [profileQuality, setProfileQuality] = useState<AiProfileQuality | null>(null);
   const [insights, setInsights] = useState<AiInsights | null>(null);
   const [insightsLoading, setInsightsLoading] = useState(false);
 
@@ -63,8 +62,6 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (user?.role !== "MENTEE") return;
-
-    getProfileQuality().then(setProfileQuality).catch(() => {});
 
     async function fetchInsights() {
       setInsightsLoading(true);
@@ -182,178 +179,102 @@ export default function Dashboard() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          <div className="lg:col-span-2 space-y-5">
-            <div className="wf-card-flush">
-              <div className="wf-card-header" style={{ justifyContent: "space-between" }}>
-                <span>Upcoming Sessions</span>
-                <Link to="/bookings" className="wf-btn-link" style={{ fontSize: 12 }}>
-                  View all →
-                </Link>
-              </div>
-              {upcomingSessions.length === 0 ? (
-                <div className="p-6">
-                  <div className="wf-empty">
-                    <p className="wf-empty-title">No upcoming sessions</p>
-                    <p className="wf-empty-text">Sessions you schedule will appear here.</p>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  {upcomingSessions.map((s) => {
-                    const date = new Date(s.scheduledAt);
-                    const otherName = isMentor
-                      ? [s.booking.mentee.firstName, s.booking.mentee.lastName].filter(Boolean).join(" ") || "Mentee"
-                      : [s.booking.mentor.user.firstName, s.booking.mentor.user.lastName].filter(Boolean).join(" ") || "Mentor";
-                    return (
-                      <Link
-                        key={s.id}
-                        to={`/sessions/${s.id}`}
-                        className="flex items-center justify-between px-5 py-4 transition-colors"
-                        style={{ borderBottom: "1px solid var(--color-border)" }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-bg)")}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = "")}
-                      >
-                        <div>
-                          <p className="wf-text font-medium">{s.booking.program.title}</p>
-                          <p className="wf-text-xs mt-0.5">
-                            with {otherName} · {s.duration} min
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-4 shrink-0 ml-4">
-                          <div className="text-right">
-                            <p className="wf-text-sm font-medium">
-                              {date.toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-                            </p>
-                            <p className="wf-text-xs">
-                              {date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
-                            </p>
-                          </div>
-                          <StatusBadge status={s.status} />
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            <div className="wf-card-flush">
-              <div className="wf-card-header">Your Profile</div>
-              <div className="p-5 flex items-center gap-4">
-                <div className="wf-avatar wf-avatar-md shrink-0">
-                  {user?.avatarUrl ? (
-                    <img src={user.avatarUrl} alt={displayName || "Avatar"} className="w-full h-full object-cover" />
-                  ) : (
-                    <span style={{ color: "var(--color-blue)", fontWeight: 700 }}>
-                      {(user?.firstName?.[0] || user?.email[0] || "?").toUpperCase()}
-                    </span>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="wf-text font-semibold">{displayName}</p>
-                  <p className="wf-text-sm truncate">{user?.email}</p>
-                  {!user?.isVerified && (
-                    <p className="wf-text-xs mt-1" style={{ color: "var(--color-warning)" }}>
-                      Email not verified
-                    </p>
-                  )}
-                </div>
-                <Link to="/profile/edit" className="wf-btn wf-btn-secondary" style={{ fontSize: 12, padding: "6px 14px", flexShrink: 0 }}>
-                  Edit profile
-                </Link>
-              </div>
-            </div>
+        {/* Quick Links - Grid at top */}
+        <div className="mb-6">
+          <p className="wf-eyebrow mb-3">Quick Links</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            {[
+              { to: "/bookings", label: "My Bookings", icon: CalendarCheck },
+              { to: "/messages", label: "Messages", icon: MessageSquare },
+              { to: "/goals", label: "My Goals", icon: Flag },
+              { to: "/mentors", label: "Browse Mentors", icon: Users },
+              { to: "/programs", label: "Browse Programs", icon: BookOpen },
+              { to: "/profile/edit", label: "Edit Profile", icon: UserCog },
+              ...(user?.role === "MENTOR" || user?.role === "ADMIN" ? [
+                { to: "/mentor/programs", label: "Manage Programs", icon: Layers },
+                { to: "/mentor/availability", label: "Set Availability", icon: CalendarClock },
+              ] : []),
+            ].map(({ to, label, icon: Icon }) => (
+              <Link
+                key={to}
+                to={to}
+                className="wf-card-flush px-4 py-4 transition-all group"
+                style={{ textDecoration: "none" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "var(--color-bg)";
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = "var(--shadow-md)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "";
+                  e.currentTarget.style.transform = "";
+                  e.currentTarget.style.boxShadow = "";
+                }}
+              >
+                <Icon
+                  size={20}
+                  style={{ color: "var(--color-teal)", marginBottom: 8 }}
+                  className="transition-transform group-hover:scale-110"
+                />
+                <p className="wf-text-sm font-medium" style={{ color: "var(--color-ink)" }}>{label}</p>
+              </Link>
+            ))}
           </div>
+        </div>
 
-          <div className="space-y-5">
-            {user?.role === "MENTEE" && profileQuality && (
-              <div className="wf-card-flush">
-                <div className="wf-card-header">Profile Quality</div>
-                <div className="p-5">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="wf-text font-semibold">{profileQuality.score}/100</span>
-                    <span
-                      className="wf-text-xs font-semibold px-2 py-0.5 rounded-full"
-                      style={{
-                        background: profileQuality.score >= 80 ? "var(--color-success-bg, #d1fae5)" : profileQuality.score >= 50 ? "var(--color-warn-bg, #fef3c7)" : "var(--color-error-bg, #fee2e2)",
-                        color: profileQuality.score >= 80 ? "var(--color-success, #065f46)" : profileQuality.score >= 50 ? "var(--color-warn, #92400e)" : "var(--color-error, #991b1b)",
-                      }}
-                    >
-                      {profileQuality.score >= 80 ? "Strong" : profileQuality.score >= 50 ? "Good" : "Needs work"}
-                    </span>
-                  </div>
-                  <div className="w-full h-2 rounded-full overflow-hidden mb-4" style={{ background: "var(--color-border)" }}>
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{
-                        width: `${profileQuality.score}%`,
-                        background: profileQuality.score >= 80 ? "var(--color-success, #10b981)" : profileQuality.score >= 50 ? "var(--color-warn, #f59e0b)" : "var(--color-error, #ef4444)",
-                      }}
-                    />
-                  </div>
-                  {profileQuality.suggestions.length > 0 && (
-                    <ul className="space-y-1">
-                      {profileQuality.suggestions.map((s) => (
-                        <li key={s}>
-                          <Link
-                            to="/profile/edit"
-                            className="wf-text-xs flex items-center gap-2 py-1 rounded transition-colors no-underline"
-                            style={{ color: "var(--color-ink-2)" }}
-                            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-blue)")}
-                            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-ink-2)")}
-                          >
-                            <span style={{ color: "var(--color-warn, #f59e0b)", flexShrink: 0 }}>→</span>
-                            {s}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
+        {/* Main content */}
+        <div className="wf-card-flush">
+          <div className="wf-card-header" style={{ justifyContent: "space-between" }}>
+            <span>Upcoming Sessions</span>
+            <Link to="/bookings" className="wf-btn-link" style={{ fontSize: 12 }}>
+              View all →
+            </Link>
+          </div>
+          {upcomingSessions.length === 0 ? (
+            <div className="p-6">
+              <div className="wf-empty">
+                <p className="wf-empty-title">No upcoming sessions</p>
+                <p className="wf-empty-text">Sessions you schedule will appear here.</p>
               </div>
-            )}
-
+            </div>
+          ) : (
             <div>
-            <p className="wf-eyebrow mb-3">Quick Links</p>
-            <div className="wf-card-flush overflow-hidden">
-              {[
-                { to: "/bookings", label: "My Bookings", sub: "View and manage bookings" },
-                { to: "/messages", label: "Messages", sub: "Chat with mentors & mentees" },
-                { to: "/goals", label: "My Goals", sub: "Track learning milestones" },
-                { to: "/resources", label: "Resources", sub: "Upload and access files" },
-                { to: "/mentors", label: "Browse Mentors", sub: "Find the right mentor" },
-                { to: "/programs", label: "Browse Programs", sub: "Explore programs" },
-                ...(user?.role === "MENTOR" || user?.role === "ADMIN" ? [
-                  { to: "/mentor/payments", label: "My Earnings", sub: "View completed session payments" },
-                  { to: "/mentor/programs", label: "Manage Programs", sub: "Create and edit programs" },
-                  { to: "/mentor/availability", label: "Set Availability", sub: "Manage your schedule" },
-                ] : []),
-                ...(user?.role === "MENTEE" ? [
-                  { to: "/become-mentor", label: "Become a Mentor", sub: "Share your expertise" },
-                ] : []),
-              ].map(({ to, label, sub }, i, arr) => (
-                <Link
-                  key={to}
-                  to={to}
-                  className="flex items-center justify-between px-4 py-3 transition-colors"
-                  style={{
-                    borderBottom: i < arr.length - 1 ? "1px solid var(--color-border)" : "none",
-                    textDecoration: "none",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-bg)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "")}
-                >
-                  <div>
-                    <p className="wf-text font-medium" style={{ color: "var(--color-ink)" }}>{label}</p>
-                    <p className="wf-text-xs">{sub}</p>
-                  </div>
-                  <span style={{ color: "var(--color-ink-3)", fontSize: 16 }}>›</span>
-                </Link>
-              ))}
+              {upcomingSessions.map((s) => {
+                const date = new Date(s.scheduledAt);
+                const otherName = isMentor
+                  ? [s.booking.mentee.firstName, s.booking.mentee.lastName].filter(Boolean).join(" ") || "Mentee"
+                  : [s.booking.mentor.user.firstName, s.booking.mentor.user.lastName].filter(Boolean).join(" ") || "Mentor";
+                return (
+                  <Link
+                    key={s.id}
+                    to={`/sessions/${s.id}`}
+                    className="flex items-center justify-between px-5 py-4 transition-colors"
+                    style={{ borderBottom: "1px solid var(--color-border)" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-bg)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "")}
+                  >
+                    <div>
+                      <p className="wf-text font-medium">{s.booking.program.title}</p>
+                      <p className="wf-text-xs mt-0.5">
+                        with {otherName} · {s.duration} min
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-4 shrink-0 ml-4">
+                      <div className="text-right">
+                        <p className="wf-text-sm font-medium">
+                          {date.toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                        </p>
+                        <p className="wf-text-xs">
+                          {date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
+                        </p>
+                      </div>
+                      <StatusBadge status={s.status} />
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
-            </div>
-          </div>
+          )}
         </div>
 
         {user?.role === "MENTEE" && (insights || insightsLoading) && (

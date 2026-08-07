@@ -53,6 +53,7 @@ resource "aws_ecs_task_definition" "app" {
         { name = "GEMINI_API_KEY", valueFrom = "${aws_secretsmanager_secret.app.arn}:GEMINI_API_KEY::" },
         { name = "SENTRY_DSN", valueFrom = "${aws_secretsmanager_secret.app.arn}:SENTRY_DSN::" },
         { name = "CLERK_SECRET_KEY", valueFrom = "${aws_secretsmanager_secret.app.arn}:CLERK_SECRET_KEY::" },
+        { name = "CLERK_PUBLISHABLE_KEY", valueFrom = "${aws_secretsmanager_secret.app.arn}:CLERK_PUBLISHABLE_KEY::" },
       ]
 
       logConfiguration = {

@@ -16,53 +16,102 @@ const ListMentorsQuery = z.object({
 
 // GET /api/mentors - List approved mentors with pagination and filters
 router.get("/", async (req, res) => {
-  const parsed = ListMentorsQuery.safeParse(req.query);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.errors[0].message });
-    return;
+  try {
+    const parsed = ListMentorsQuery.safeParse(req.query);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.errors[0].message });
+      return;
+    }
+
+    const { page, limit, search, expertise, minRate, maxRate, minExperience } = parsed.data;
+    const skip = (page - 1) * limit;
+
+    // Build filter conditions
+    const where: any = {
+      isApproved: true,
+    };
+
+    // Search by name or headline
+    if (search) {
+      where.OR = [
+        { headline: { contains: search, mode: "insensitive" } },
+        { user: { firstName: { contains: search, mode: "insensitive" } } },
+        { user: { lastName: { contains: search, mode: "insensitive" } } },
+      ];
+    }
+
+    // Filter by expertise
+    if (expertise) {
+      const expertiseList = expertise.split(",").map((e) => e.trim());
+      where.expertise = { hasSome: expertiseList };
+    }
+
+    // Filter by hourly rate range
+    if (minRate !== undefined || maxRate !== undefined) {
+      where.hourlyRate = {};
+      if (minRate !== undefined) where.hourlyRate.gte = minRate;
+      if (maxRate !== undefined) where.hourlyRate.lte = maxRate;
+    }
+
+    // Filter by years of experience
+    if (minExperience !== undefined) {
+      where.yearsExperience = { gte: minExperience };
+    }
+
+    const [mentors, total] = await Promise.all([
+      prisma.mentorProfile.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatarUrl: true,
+              bio: true,
+            },
+          },
+          _count: {
+            select: { programs: { where: { isPublished: true } } },
+          },
+        },
+      }),
+      prisma.mentorProfile.count({ where }),
+    ]);
+
+    res.json({
+      mentors: mentors.map((m) => ({
+        id: m.id,
+        headline: m.headline,
+        expertise: m.expertise,
+        hourlyRate: m.hourlyRate,
+        yearsExperience: m.yearsExperience,
+        user: m.user,
+        programCount: m._count.programs,
+      })),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (err) {
+    console.error("GET /api/mentors error:", err);
+    res.status(500).json({ error: "Failed to fetch mentors" });
   }
+});
 
-  const { page, limit, search, expertise, minRate, maxRate, minExperience } = parsed.data;
-  const skip = (page - 1) * limit;
+// GET /api/mentors/:id - Get mentor detail
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
 
-  // Build filter conditions
-  const where: any = {
-    isApproved: true,
-  };
-
-  // Search by name or headline
-  if (search) {
-    where.OR = [
-      { headline: { contains: search, mode: "insensitive" } },
-      { user: { firstName: { contains: search, mode: "insensitive" } } },
-      { user: { lastName: { contains: search, mode: "insensitive" } } },
-    ];
-  }
-
-  // Filter by expertise
-  if (expertise) {
-    const expertiseList = expertise.split(",").map((e) => e.trim());
-    where.expertise = { hasSome: expertiseList };
-  }
-
-  // Filter by hourly rate range
-  if (minRate !== undefined || maxRate !== undefined) {
-    where.hourlyRate = {};
-    if (minRate !== undefined) where.hourlyRate.gte = minRate;
-    if (maxRate !== undefined) where.hourlyRate.lte = maxRate;
-  }
-
-  // Filter by years of experience
-  if (minExperience !== undefined) {
-    where.yearsExperience = { gte: minExperience };
-  }
-
-  const [mentors, total] = await Promise.all([
-    prisma.mentorProfile.findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: { createdAt: "desc" },
+    const mentor = await prisma.mentorProfile.findUnique({
+      where: { id },
       include: {
         user: {
           select: {
@@ -71,90 +120,56 @@ router.get("/", async (req, res) => {
             lastName: true,
             avatarUrl: true,
             bio: true,
+            createdAt: true,
           },
         },
-        _count: {
-          select: { programs: { where: { isPublished: true } } },
+        programs: {
+          where: { isPublished: true },
+          orderBy: { createdAt: "desc" },
+        },
+        availability: {
+          orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
         },
       },
-    }),
-    prisma.mentorProfile.count({ where }),
-  ]);
+    });
 
-  res.json({
-    mentors: mentors.map((m) => ({
-      id: m.id,
-      headline: m.headline,
-      expertise: m.expertise,
-      hourlyRate: m.hourlyRate,
-      yearsExperience: m.yearsExperience,
-      user: m.user,
-      programCount: m._count.programs,
-    })),
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
-    },
-  });
-});
+    if (!mentor || !mentor.isApproved) {
+      res.status(404).json({ error: "Mentor not found" });
+      return;
+    }
 
-// GET /api/mentors/:id - Get mentor detail
-router.get("/:id", async (req, res) => {
-  const { id } = req.params;
-
-  const mentor = await prisma.mentorProfile.findUnique({
-    where: { id },
-    include: {
-      user: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          avatarUrl: true,
-          bio: true,
-          createdAt: true,
-        },
-      },
-      programs: {
-        where: { isPublished: true },
-        orderBy: { createdAt: "desc" },
-      },
-      availability: {
-        orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
-      },
-    },
-  });
-
-  if (!mentor || !mentor.isApproved) {
-    res.status(404).json({ error: "Mentor not found" });
-    return;
+    res.json({ mentor });
+  } catch (err) {
+    console.error("GET /api/mentors/:id error:", err);
+    res.status(500).json({ error: "Failed to fetch mentor" });
   }
-
-  res.json({ mentor });
 });
 
 // GET /api/mentors/:id/availability - Get mentor's availability
 router.get("/:id/availability", async (req, res) => {
-  const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-  const mentor = await prisma.mentorProfile.findUnique({
-    where: { id },
-    select: { isApproved: true },
-  });
+    const mentor = await prisma.mentorProfile.findUnique({
+      where: { id },
+      select: { isApproved: true },
+    });
 
-  if (!mentor || !mentor.isApproved) {
-    res.status(404).json({ error: "Mentor not found" });
-    return;
+    if (!mentor || !mentor.isApproved) {
+      res.status(404).json({ error: "Mentor not found" });
+      return;
+    }
+
+    const availability = await prisma.availability.findMany({
+      where: { mentorId: id },
+      orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
+    });
+
+    res.json({ availability });
+  } catch (err) {
+    console.error("GET /api/mentors/:id/availability error:", err);
+    res.status(500).json({ error: "Failed to fetch availability" });
   }
-
-  const availability = await prisma.availability.findMany({
-    where: { mentorId: id },
-    orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
-  });
-
-  res.json({ availability });
 });
 
 export default router;

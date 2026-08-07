@@ -30,7 +30,8 @@ resource "aws_db_instance" "main" {
   skip_final_snapshot    = false
   final_snapshot_identifier = "${var.project_name}-final-snapshot"
 
-  backup_retention_period = 7
+  # ponytail: free tier allows max 1 day retention
+  backup_retention_period = 1
   backup_window           = "03:00-04:00"
   maintenance_window      = "Mon:04:00-Mon:05:00"
 

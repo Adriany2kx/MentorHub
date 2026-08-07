@@ -80,7 +80,7 @@ export default function MentorDirectory() {
   }
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen" style={{ background: "var(--color-bg)" }}>
       <div className="wf-page py-10">
         {/* Page header */}
         <div className="wf-page-header mb-8">
@@ -116,13 +116,13 @@ export default function MentorDirectory() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="wf-card animate-pulse">
+                    <div key={i} className="wf-card p-5">
                       <div className="flex gap-4">
-                        <div className="w-16 h-16 bg-paper-2 shrink-0" />
+                        <div className="wf-skeleton wf-skeleton-avatar-md shrink-0" />
                         <div className="flex-1 space-y-2">
-                          <div className="h-3 bg-paper-2 w-3/4" />
-                          <div className="h-3 bg-paper-2 w-full" />
-                          <div className="h-3 bg-paper-2 w-2/3" />
+                          <div className="wf-skeleton wf-skeleton-text w-3/4" />
+                          <div className="wf-skeleton wf-skeleton-text w-full" />
+                          <div className="wf-skeleton wf-skeleton-text w-2/3" />
                         </div>
                       </div>
                     </div>

@@ -39,74 +39,79 @@ const ListProgramsQuery = z.object({
 
 // GET /api/programs - List published programs
 router.get("/", async (req, res) => {
-  const parsed = ListProgramsQuery.safeParse(req.query);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.errors[0].message });
-    return;
-  }
+  try {
+    const parsed = ListProgramsQuery.safeParse(req.query);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.errors[0].message });
+      return;
+    }
 
-  const { page, limit, search, topic, minPrice, maxPrice, mentorId } = parsed.data;
-  const skip = (page - 1) * limit;
+    const { page, limit, search, topic, minPrice, maxPrice, mentorId } = parsed.data;
+    const skip = (page - 1) * limit;
 
-  const where: any = {
-    isPublished: true,
-    mentor: { isApproved: true },
-  };
+    const where: any = {
+      isPublished: true,
+      mentor: { isApproved: true },
+    };
 
-  if (search) {
-    where.OR = [
-      { title: { contains: search, mode: "insensitive" } },
-      { description: { contains: search, mode: "insensitive" } },
-    ];
-  }
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+      ];
+    }
 
-  if (topic) {
-    where.topics = { has: topic };
-  }
+    if (topic) {
+      where.topics = { has: topic };
+    }
 
-  if (minPrice !== undefined || maxPrice !== undefined) {
-    where.price = {};
-    if (minPrice !== undefined) where.price.gte = minPrice;
-    if (maxPrice !== undefined) where.price.lte = maxPrice;
-  }
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      where.price = {};
+      if (minPrice !== undefined) where.price.gte = minPrice;
+      if (maxPrice !== undefined) where.price.lte = maxPrice;
+    }
 
-  if (mentorId) {
-    where.mentorId = mentorId;
-  }
+    if (mentorId) {
+      where.mentorId = mentorId;
+    }
 
-  const [programs, total] = await Promise.all([
-    prisma.program.findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: { createdAt: "desc" },
-      include: {
-        mentor: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                avatarUrl: true,
+    const [programs, total] = await Promise.all([
+      prisma.program.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        include: {
+          mentor: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  avatarUrl: true,
+                },
               },
             },
           },
         },
-      },
-    }),
-    prisma.program.count({ where }),
-  ]);
+      }),
+      prisma.program.count({ where }),
+    ]);
 
-  res.json({
-    programs,
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
-    },
-  });
+    res.json({
+      programs,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (err) {
+    console.error("GET /api/programs error:", err);
+    res.status(500).json({ error: "Failed to fetch programs" });
+  }
 });
 
 // GET /api/programs/my - Get mentor's own programs (requires auth)
@@ -130,39 +135,44 @@ router.get("/my", requireAuth, requireMentor, async (req, res) => {
 
 // GET /api/programs/:id - Get program detail
 router.get("/:id", async (req, res) => {
-  const id = req.params.id as string;
+  try {
+    const id = req.params.id as string;
 
-  const program = await prisma.program.findUnique({
-    where: { id },
-    include: {
-      mentor: {
-        include: {
-          user: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              avatarUrl: true,
-              bio: true,
+    const program = await prisma.program.findUnique({
+      where: { id },
+      include: {
+        mentor: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatarUrl: true,
+                bio: true,
+              },
             },
           },
         },
       },
-    },
-  });
+    });
 
-  if (!program) {
-    res.status(404).json({ error: "Program not found" });
-    return;
+    if (!program) {
+      res.status(404).json({ error: "Program not found" });
+      return;
+    }
+
+    // Only show unpublished programs to the owner
+    if (!program.isPublished) {
+      res.status(404).json({ error: "Program not found" });
+      return;
+    }
+
+    res.json({ program });
+  } catch (err) {
+    console.error("GET /api/programs/:id error:", err);
+    res.status(500).json({ error: "Failed to fetch program" });
   }
-
-  // Only show unpublished programs to the owner
-  if (!program.isPublished) {
-    res.status(404).json({ error: "Program not found" });
-    return;
-  }
-
-  res.json({ program });
 });
 
 // POST /api/programs - Create program (mentor only)
