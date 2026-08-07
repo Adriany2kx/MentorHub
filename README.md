@@ -2,16 +2,101 @@
 
 <div align="center">
   <h1>MentorHub</h1>
-  <p><em>Final Year Project — BSc Computer Science</em></p>
+  <p><strong>Final Year Project — BSc Computer Science</strong></p>
   <p>An AI-powered mentorship platform connecting mentees with professional mentors.</p>
-  <p><a href="https://mentor-hub.app">mentor-hub.app</a></p>
+  <br/>
+  <p>
+    <a href="https://mentor-hub.app">Live Demo</a> •
+    <a href="https://api.mentor-hub.app/api/health">API Status</a>
+  </p>
 </div>
 
 ---
 
-## Built With
+## Tech Stack
 
-[![React][react-shield]][react-url] [![TypeScript][ts-shield]][ts-url] [![Node.js][node-shield]][node-url] [![Express][express-shield]][express-url] [![Prisma][prisma-shield]][prisma-url] [![PostgreSQL][postgres-shield]][postgres-url] [![Docker][docker-shield]][docker-url]
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 19, TypeScript, Vite, Tailwind CSS, Radix UI |
+| Backend | Express.js, Node.js 20, TypeScript, Prisma ORM |
+| Database | PostgreSQL 15 |
+| Auth | Clerk |
+| AI | Google Gemini |
+| Payments | Stripe |
+| Email | Resend |
+| Hosting | AWS ECS Fargate, RDS, S3, ALB |
+| IaC | Terraform |
+| CI/CD | GitHub Actions |
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js 20+
+- Docker & Docker Compose
+- PostgreSQL (or use Docker)
+
+### Local Development
+
+```bash
+# 1. Clone
+git clone https://github.com/your-username/mentorhub.git
+cd mentorhub
+
+# 2. Install dependencies
+npm install
+
+# 3. Configure environment
+cp apps/server/.env.example apps/server/.env
+cp apps/web/.env.example apps/web/.env
+# Edit both .env files with your keys
+
+# 4. Start database
+docker compose up -d db
+
+# 5. Run migrations
+cd apps/server && npx prisma migrate dev
+
+# 6. Start development servers
+npm run dev
+```
+
+Frontend: http://localhost:5173
+Backend: http://localhost:3000
+
+### Production (Docker)
+
+```bash
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+---
+
+## Architecture
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   React     │────▶│   Express   │────▶│ PostgreSQL  │
+│   (Vite)    │     │   (Node)    │     │  (Prisma)   │
+└─────────────┘     └──────┬──────┘     └─────────────┘
+                           │
+                    ┌──────▼──────┐
+                    │   Gemini    │
+                    │     AI      │
+                    └─────────────┘
+```
+
+**Frontend** → React SPA with Clerk auth, served via Vercel
+**Backend** → Express API on AWS ECS Fargate
+**Database** → PostgreSQL on AWS RDS
+**Storage** → AWS S3 for file uploads
+**AI** → Google Gemini for recommendations, summaries, and insights
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -20,118 +105,146 @@
 ## Features
 
 ### Authentication & Security
-- Email/password registration with reCAPTCHA v2
-- Email verification with exponential-backoff resend (30s → 60s → 120s…)
-- Password reset via secure token email
-- Session-based auth with HTTP-only cookies
-- Rate limiting on auth endpoints
-- User suspension and ban system
+- Clerk-based authentication (email/password, OAuth)
+- Session management with secure cookies
+- Rate limiting on sensitive endpoints
+- reCAPTCHA protection
 
-### Profiles
-- Mentee profile — goals, current role, target role, interests, skill levels
-- Mentor profile — headline, expertise tags, hourly rate, years of experience
-- Avatar upload
+### User Profiles
+- Mentee profiles: goals, skills, interests, career targets
+- Mentor profiles: expertise, rates, experience, availability
+- Avatar uploads to S3
 - Public profile pages
 
 ### Mentor Programs
-- Mentors create programs with title, description, duration, session count, price, topic tags
-- Publish / unpublish controls
-- Mentee browsing and filtering by topic
+- Create/edit programs with pricing, duration, topics
+- Publish/unpublish controls
+- Browse and filter by category
 
-### Booking & Scheduling
-- Mentees book mentor programs
-- Status workflow: PENDING → CONFIRMED → ACTIVE → COMPLETED / CANCELLED
-- Mentor availability calendar with timezone support
-- Session notes, meeting URL, mentee feedback, star rating
+### Booking System
+- Program booking workflow: PENDING → CONFIRMED → ACTIVE → COMPLETED
+- Session scheduling with timezone support
+- Session notes and meeting URLs
 
 ### AI Features (Gemini)
-- Mentor recommendations — ranked matches based on mentee profile and skill gaps
-- Compatibility score — per-mentor match explanation shown on mentor profile pages
-- Profile quality score — suggestions to improve profile completeness for better matches
-- Progress insights — highlights, stalled areas, session frequency (24 h cached)
-- Session agenda — personalised agenda generated from goals, skills, and previous sessions
-- Session summaries — key points, decisions, action items, and follow-up questions
-- Action item extraction — automatically creates goal milestones from session notes
-- Learning path generation — staged roadmap from current skills toward target role
-- Goal achievement prediction — algorithmic likelihood score and on-track / at-risk trajectory
-- Resource recommendations — suggests learning resource types and search topics based on goal progress
-- Goal-based mentor suggestions — surfaces relevant mentors when viewing a specific goal
+- **Mentor Matching** — ranked recommendations based on mentee profile
+- **Compatibility Scores** — per-mentor match explanations
+- **Session Agendas** — auto-generated from goals and history
+- **Session Summaries** — key points, action items, follow-ups
+- **Learning Paths** — staged roadmaps toward career goals
+- **Progress Insights** — highlights, stalled areas, trajectory
+- **Goal Predictions** — likelihood scores and risk indicators
 
 ### Messaging
-- Direct one-to-one messaging between mentee and mentor
+- Direct messaging between mentees and mentors
 - Read receipts and conversation history
-- Message reporting
 
 ### Goals & Milestones
-- Goal creation linked to bookings with status and progress tracking
+- Goal tracking linked to bookings
 - Milestone creation and completion
 
-### Resources
-- File uploads (documents, videos, links, images)
-- Resources linked to programs or bookings
-- Public and private visibility
-
-### Reviews & Ratings
-- Post-session reviews with star rating and text
-- Mentor responses to reviews
-
 ### Payments
-- Stripe payment integration
-- Payment history for mentees and mentors
+- Stripe integration for program payments
+- Payment history tracking
 
 ### Admin Dashboard
-- User management and account creation
-- Mentor approval workflow
-- Program and payment oversight
-- User report management with admin notes
-- Account suspension
-
-### Email
-- Transactional emails via Resend
-- Branded HTML templates matching app theme
-- Verification and password reset flows
-
-### Deployment
-- Fully Dockerised with Docker Compose
-- Nginx reverse proxy with HTTPS (Let's Encrypt)
-- Target: AWS (ECS Fargate + RDS + S3)
-- Prisma migrations run automatically on container start
+- User management and mentor approval
+- Content moderation and reporting
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ---
 
-## Getting Started
+## API Endpoints
 
-### Prerequisites
+**93 endpoints** across 12 route modules:
 
-- Node.js 20+
-- Docker and Docker Compose
+| Module | Endpoints | Description |
+|--------|-----------|-------------|
+| `/api/auth` | 4 | Authentication sync, user info |
+| `/api/users` | 8 | User CRUD, profiles, avatars |
+| `/api/mentors` | 6 | Mentor listings, search, availability |
+| `/api/programs` | 10 | Program CRUD, publishing |
+| `/api/bookings` | 12 | Booking lifecycle, sessions |
+| `/api/goals` | 8 | Goal and milestone management |
+| `/api/messages` | 6 | Conversations, messaging |
+| `/api/reviews` | 5 | Ratings and feedback |
+| `/api/resources` | 7 | File uploads, resource sharing |
+| `/api/payments` | 6 | Stripe integration |
+| `/api/ai` | 15 | Gemini-powered features |
+| `/api/admin` | 6 | Admin operations |
 
-### Installation
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-1. Clone the repository
+---
+
+## Testing
+
+### Test Coverage
+
+| Type | Framework | Status |
+|------|-----------|--------|
+| Type Safety | TypeScript strict mode | ✅ Passing |
+| Linting | ESLint | ✅ Passing |
+| API Testing | Manual + Postman | ✅ Documented |
+| E2E | Manual QA | ✅ Core flows verified |
+
+### Running Checks
+
 ```bash
-git clone https://github.com/Adriany2kx/MentorHub.git
-cd MentorHub
+# TypeScript
+npm run type-check
+
+# Lint
+npm run lint
+
+# All checks
+npm run check
 ```
 
-2. Install dependencies
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+---
+
+## Deployment
+
+### Infrastructure (Terraform)
+
+All AWS resources defined in `infra/terraform/`:
+
+| Resource | Purpose |
+|----------|---------|
+| ECS Fargate | API container hosting |
+| RDS PostgreSQL | Database |
+| S3 | File uploads |
+| ALB | Load balancer + HTTPS |
+| Secrets Manager | Environment variables |
+| ECR | Docker image registry |
+
 ```bash
-npm install
+cd infra/terraform
+terraform init
+terraform plan
+terraform apply
 ```
 
-3. Copy and fill in environment variables
-```bash
-cp .env.prod.example .env
-```
+### CI/CD
 
-4. Start with Docker Compose
-```bash
-docker compose -f docker-compose.prod.yml up -d --build
-```
+GitHub Actions workflow (`.github/workflows/deploy.yml`):
+1. Build Docker image
+2. Push to ECR
+3. Update ECS service
 
-> **Never commit your `.env` file.**
+### Manual Deploy
+
+```bash
+# Build and push
+docker build -t mentorhub-api apps/server
+aws ecr get-login-password | docker login --username AWS --password-stdin <ECR_URL>
+docker push <ECR_URL>/mentorhub-api:latest
+
+# ECS auto-deploys on new image
+```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -139,26 +252,31 @@ docker compose -f docker-compose.prod.yml up -d --build
 
 ## Environment Variables
 
+See `.env.example` files in `apps/server/` and `apps/web/` for required variables.
+
+**Key variables:**
+
 | Variable | Description |
-|---|---|
+|----------|-------------|
 | `DATABASE_URL` | PostgreSQL connection string |
-| `SESSION_SECRET` | Min 32-char secret for session signing |
-| `FRONTEND_URL` | Public URL of the frontend |
-| `RECAPTCHA_SECRET_KEY` | Google reCAPTCHA v2 secret key |
-| `RESEND_API_KEY` | Resend API key for transactional email |
-| `EMAIL_FROM` | Verified sender address |
-| `GEMINI_API_KEY` | Google Gemini API key for AI features |
-| `NGINX_HOST` | Domain name for Nginx |
+| `CLERK_SECRET_KEY` | Clerk authentication |
+| `GEMINI_API_KEY` | Google AI features |
+| `RESEND_API_KEY` | Transactional email |
+| `STRIPE_SECRET_KEY` | Payment processing |
+| `SENTRY_DSN` | Error tracking |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ---
 
-## With More Time
+## Todo / Future Work
 
-Features that were designed and partially built but not surfaced in the UI within the project timeline:
-
-- **AI micro-milestones** — break a goal into 5–8 specific, ordered sub-tasks generated by Gemini. The backend endpoint and API client are complete; a UI trigger on the goal creation / edit page was not implemented.
+- [ ] **Real-time notifications** — WebSocket integration for instant updates
+- [ ] **Video calls** — Integrated video sessions (Daily.co / Twilio)
+- [ ] **Mobile app** — React Native companion app
+- [ ] **AI micro-milestones** — Auto-generate sub-tasks for goals (backend ready)
+- [ ] **Calendar sync** — Google Calendar / Outlook integration
+- [ ] **Advanced analytics** — Mentor performance dashboards
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -166,9 +284,13 @@ Features that were designed and partially built but not surfaced in the UI withi
 
 ## License
 
-For educational purposes.
+For educational purposes — Final Year Project, BSc Computer Science.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+---
+
+[![React][react-shield]][react-url] [![TypeScript][ts-shield]][ts-url] [![Node.js][node-shield]][node-url] [![Express][express-shield]][express-url] [![Prisma][prisma-shield]][prisma-url] [![PostgreSQL][postgres-shield]][postgres-url] [![Docker][docker-shield]][docker-url] [![AWS][aws-shield]][aws-url]
 
 [react-shield]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
 [react-url]: https://react.dev
@@ -184,3 +306,5 @@ For educational purposes.
 [postgres-url]: https://postgresql.org
 [docker-shield]: https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white
 [docker-url]: https://docker.com
+[aws-shield]: https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazonaws&logoColor=white
+[aws-url]: https://aws.amazon.com
